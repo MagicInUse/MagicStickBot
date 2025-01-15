@@ -1,0 +1,2 @@
+# MagicStickBot
+Twitch API Integration
