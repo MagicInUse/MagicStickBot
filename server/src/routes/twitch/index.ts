@@ -8,10 +8,10 @@ const twitchRouter = express.Router();
 const userClientAuthController = new UserClientAuthController();
 
 // ${BASE_URL}/twitch/app
-twitchRouter.get('/app', twitchAppAPIRouter);
+twitchRouter.use('/app', twitchAppAPIRouter);
 
 // ${BASE_URL}/twitch/user
-twitchRouter.get('/user', twitchUserAPIRouter);
+twitchRouter.use('/user', twitchUserAPIRouter);
 
 // ${BASE_URL}/twitch/login
 twitchRouter.get('/login', userClientAuthController.handleLogin);

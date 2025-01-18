@@ -6,7 +6,7 @@ class TwitchClient {
     private tokenUrl: string;
     private accessToken: string | null;
     private tokenExpiration: Date | null;
-    private readonly TOKEN_REFRESH_BUFFER = 60 * 60 * 1000; // 1 hour before expiry
+    private readonly TOKEN_REFRESH_BUFFER = 30 * 60 * 1000; // 30m before 24h
 
     constructor() {
         this.clientId = process.env.TWITCH_APP_CLIENT_ID!;
@@ -14,7 +14,7 @@ class TwitchClient {
         this.tokenUrl = process.env.TWITCH_CLIENT_TOKEN_URI!;
         this.accessToken = process.env.TWITCH_APP_ACCESS_TOKEN || null;
         this.tokenExpiration = process.env.TWITCH_APP_TOKEN_EXPIRATION 
-            ? new Date(process.env.TWITCH_APP_TOKEN_EXPIRATION) 
+            ? new Date(process.env.TWITCH_APP_TOKEN_EXPIRATION)
             : null;
     }
 
@@ -35,30 +35,16 @@ class TwitchClient {
             });
 
             this.accessToken = response.data.access_token;
-            // Set expiration to 1 day from now
-            this.tokenExpiration = new Date(Date.now() + (24 * 60 * 60 * 1000));
-            
+            this.tokenExpiration = new Date(Date.now() + (24 * 60 * 60 * 1000)); // 30 days
+
             // Update environment variables
-            process.env.TWITCH_CLIENT_APP_TOKEN = this.accessToken!;
-            process.env.TWITCH_APP_TOKEN_EXPIRATION = this.tokenExpiration.toISOString();
+            process.env.TWITCH_CLIENT_APP_ACCESS_TOKEN = this.accessToken!;
+            process.env.TWITCH_CLIENT_APP_TOKEN_EXPIRATION = this.tokenExpiration.toISOString();
 
             console.log('Twitch App Client connected successfully');
-            this.scheduleTokenRefresh();
         } catch (error) {
             console.error('Failed to log in:', error);
             throw error;
-        }
-    }
-
-    private scheduleTokenRefresh() {
-        if (!this.tokenExpiration) return;
-
-        const refreshTime = this.tokenExpiration.getTime() - this.TOKEN_REFRESH_BUFFER;
-        const now = Date.now();
-        const delay = refreshTime - now;
-
-        if (delay > 0) {
-            setTimeout(() => this.login(), delay);
         }
     }
 
@@ -71,10 +57,10 @@ class TwitchClient {
 
     async initialize() {
         if (this.accessToken && !this.isTokenExpired()) {
-            this.scheduleTokenRefresh();
-        } else {
-            await this.login();
+            console.log('Using existing token from environment');
+            return;
         }
+        await this.login();
     }
 }
 

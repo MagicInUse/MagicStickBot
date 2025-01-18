@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Request, Response } from 'express';
 
 class TwitchUserClient {
     private clientId: string;
@@ -33,7 +34,7 @@ class TwitchUserClient {
         return `${baseUrl}?${params.toString()}`;
     }
 
-    async exchangeCodeForToken(code: string): Promise<string | null> {
+    async exchangeCodeForToken(code: string, res: Response): Promise<string | null> {
         try {
             const response = await axios.post(this.tokenUrl, null, {
                 params: {
@@ -46,22 +47,31 @@ class TwitchUserClient {
             });
     
             this.accessToken = response.data.access_token;
-            console.log('Twitch User Client connected successfully');
-            return this.accessToken || null;
-        } catch (error: any) {
-            console.error('Error exchanging code for token:', {
-                message: (error).message,
-                response: error.response?.data,
+            
+            // Set cookie with token
+            res.cookie('user_access_token', this.accessToken, {
+                httpOnly: true,
+                secure: true,
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
             });
-            throw new Error('Failed to exchange code for token. Please try again.');
+
+            console.log('Twitch User Client connected successfully');
+            return this.accessToken;
+        } catch (error: any) {
+            console.error('Error exchanging code for token:', error);
+            throw error;
         }
     }
 
-    async getAccessToken() {
-        if (!this.accessToken) {
-            throw new Error('Access token is not available. Please authenticate first.');
+    async getAccessToken(req: Request): Promise<string> {
+        const token = req.cookies.user_access_token;
+        
+        if (!token) {
+            throw new Error('Access token not found. Please authenticate first.');
         }
-        return this.accessToken;
+
+        this.accessToken = token;
+        return token;
     }
 }
 

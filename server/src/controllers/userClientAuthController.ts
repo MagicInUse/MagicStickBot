@@ -59,7 +59,7 @@ class UserClientAuthController {
 
         try {
             // Exchange code for token
-            const accessToken = await this.twitchUserClient.exchangeCodeForToken(code as string);
+            const accessToken = await this.twitchUserClient.exchangeCodeForToken(code as string, res);
 
             if (!accessToken) {
                 res.status(500).json({
