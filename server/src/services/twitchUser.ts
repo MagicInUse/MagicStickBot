@@ -43,7 +43,7 @@ class TwitchUserClient {
             });
     
             this.accessToken = response.data.access_token;
-            console.log('Twitch User Client logged in successfully');
+            console.log('Twitch User Client connected successfully');
             return this.accessToken || null;
         } catch (error: any) {
             console.error('Error exchanging code for token:', {

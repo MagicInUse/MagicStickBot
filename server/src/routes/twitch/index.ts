@@ -1,5 +1,5 @@
 import express from 'express';
-import UserClientController from '../../controllers/userClientController.js';
+import UserClientController from '../../controllers/userClientAuthController.js';
 
 const twitchRouter = express.Router();
 const userClientController = new UserClientController();
