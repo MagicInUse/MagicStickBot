@@ -1,6 +1,6 @@
 import TwitchClient from '../services/twitchClient.js';
 
-class AppClientController {
+class AppClientAuthController {
     private twitchClient: TwitchClient;
 
     constructor() {
@@ -12,4 +12,4 @@ class AppClientController {
     };
 }
 
-export default AppClientController;
+export default AppClientAuthController;

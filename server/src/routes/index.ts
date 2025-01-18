@@ -4,7 +4,10 @@ import twitchRouter from './twitch/index.js';
 
 const router = express.Router();
 
+// ${BASE_URL}/twitch
 router.use('/twitch', twitchRouter);
+
+// ${BASE_URL}/api
 // app.use('/api', apiRouter);
 
 export default router;

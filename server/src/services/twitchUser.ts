@@ -6,7 +6,10 @@ class TwitchUserClient {
     private redirectUri: string;
     private tokenUrl: string;
     private accessToken: string | null;
-    private scopes: string[] = ['user:read:email'];
+    private scopes: string[] = [
+        // Declare required scopes here
+        'user:read:email'
+    ];
 
     constructor() {
         this.clientId = process.env.TWITCH_APP_CLIENT_ID!;

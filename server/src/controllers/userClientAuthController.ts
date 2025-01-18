@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { Request, Response } from 'express';
 import TwitchUserClient from '../services/twitchUser.js';
 
-class UserClientController {
+class UserClientAuthController {
     private twitchUserClient: TwitchUserClient;
     private stateStore: Map<string, boolean>;
 
@@ -88,4 +88,4 @@ class UserClientController {
     };
 }
 
-export default UserClientController;
+export default UserClientAuthController;

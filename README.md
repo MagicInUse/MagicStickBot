@@ -11,3 +11,7 @@ Magic Stick Bot is a full-stack application designed to interact with the Twitch
 - **Predictions & Polls**: Manage and store predictions and polls.
 - **Channel Points**: Display and manage channel points for users.
 
+## References
+- [Twitch OAuth](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/)
+- [Twitch API Reference](https://dev.twitch.tv/docs/api/reference/)
+- [Twitch API Scopes](https://dev.twitch.tv/docs/authentication/scopes/)
