@@ -4,9 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && npx tsc",
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --ext ts,js,json --exec \"npm run build && npm start\"",
-    "build": "tsc",
     "watch": "tsc -w"
   },
   "keywords": [],
@@ -27,6 +28,7 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }
