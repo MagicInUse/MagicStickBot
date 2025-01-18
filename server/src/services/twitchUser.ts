@@ -20,7 +20,7 @@ class TwitchUserClient {
         const baseUrl = process.env.TWITCH_USER_TOKEN_URI!;
         const params = new URLSearchParams({
             client_id: this.clientId,
-            force_verify: 'true',
+            force_verify: 'false',
             redirect_uri: this.redirectUri,
             response_type: 'code',
             scope: this.scopes.join(' '),
@@ -43,7 +43,7 @@ class TwitchUserClient {
             });
     
             this.accessToken = response.data.access_token;
-            console.log('Twitch User Client logged in successfully, access token:', this.accessToken);
+            console.log('Twitch User Client logged in successfully');
             return this.accessToken || null;
         } catch (error: any) {
             console.error('Error exchanging code for token:', {

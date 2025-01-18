@@ -42,7 +42,7 @@ class TwitchClient {
             process.env.TWITCH_CLIENT_APP_TOKEN = this.accessToken!;
             process.env.TWITCH_APP_TOKEN_EXPIRATION = this.tokenExpiration.toISOString();
 
-            console.log('Twitch Client logged in successfully');
+            console.log('Twitch App Client logged in successfully');
             this.scheduleTokenRefresh();
         } catch (error) {
             console.error('Failed to log in:', error);
