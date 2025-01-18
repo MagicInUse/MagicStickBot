@@ -16,6 +16,9 @@ class TwitchUserClient {
         this.clientId = process.env.TWITCH_APP_CLIENT_ID!;
         this.clientSecret = process.env.TWITCH_APP_CLIENT_SECRET!;
         this.redirectUri = process.env.TWITCH_REDIRECT_URI!;
+        this.redirectUri = process.env.NODE_ENV === 'production' 
+            ? process.env.TWITCH_REDIRECT_URI! 
+            : 'https://localhost:5173/twitch/callback';
         this.tokenUrl = process.env.TWITCH_CLIENT_TOKEN_URI!;
         this.accessToken = null;
     }
@@ -24,7 +27,7 @@ class TwitchUserClient {
         const baseUrl = process.env.TWITCH_USER_TOKEN_URI!;
         const params = new URLSearchParams({
             client_id: this.clientId,
-            force_verify: 'false',
+            force_verify: 'true',
             redirect_uri: this.redirectUri,
             response_type: 'code',
             scope: this.scopes.join(' '),

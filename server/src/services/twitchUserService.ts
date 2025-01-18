@@ -15,7 +15,7 @@ class UserService {
         
         return axios.get(`${this.API_BASE}/users`, {
             headers: {
-                'Client-ID': process.env.TWITCH_APP_CLIENT_ID!,
+                'Client-Id': process.env.TWITCH_APP_CLIENT_ID!,
                 'Authorization': `Bearer ${token}`
             }
         });
