@@ -21,7 +21,7 @@ const userAuth = async (req: Request, res: Response, next: NextFunction): Promis
             return;
         }
 
-        req.twitchHeaders = {
+        req.twitchUserHeaders = {
             'Client-Id': process.env.TWITCH_APP_CLIENT_ID!,
             'Authorization': `Bearer ${token}`
         };
