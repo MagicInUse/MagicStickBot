@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
-import TwitchUserClient from '../services/twitchUser.js';
+import TwitchUserClient from '../services/twitch/auth/twitchUser.js';
 
 class UserClientAuthController {
     private twitchUserClient: TwitchUserClient;

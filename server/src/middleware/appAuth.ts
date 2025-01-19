@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import TwitchClient from '../services/twitchClient.js';
+import TwitchClient from '../services/twitch/auth/twitchClient.js';
 
 const twitchClient = new TwitchClient();
 

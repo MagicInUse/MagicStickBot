@@ -1,5 +1,5 @@
 import axios from 'axios';
-import TwitchClient from './twitchClient.js';
+import TwitchClient from '../auth/twitchClient.js';
 
 class AppService {
     private twitchClient: TwitchClient;

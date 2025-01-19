@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import UserService from '../services/twitchUserService.js';
+import UserService from '../services/twitch/api/twitchUserService.js';
 
 class UserResponseController {
     private userService: UserService;

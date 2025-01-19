@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import axios from 'axios';
-import TwitchUserClient from './twitchUser.js';
+import TwitchUserClient from '../auth/twitchUser.js';
 
 class UserService {
     private twitchUserClient: TwitchUserClient;

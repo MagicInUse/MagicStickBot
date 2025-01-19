@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import AppService from '../services/twitchAppService.js';
+import AppService from '../services/twitch/api/twitchAppService.js';
 
 class AppResponseController {
     private appService: AppService;

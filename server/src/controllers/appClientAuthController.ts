@@ -1,4 +1,4 @@
-import TwitchClient from '../services/twitchClient.js';
+import TwitchClient from '../services/twitch/auth/twitchClient.js';
 
 class AppClientAuthController {
     private twitchClient: TwitchClient;
