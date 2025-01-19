@@ -21,7 +21,19 @@ class AppService {
     // https://dev.twitch.tv/docs/api/reference
     // Any skips are User only requests
 
-    
+    async getCheermotes(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/bits/cheermotes`, {
+            params: { broadcaster_id: req.params.broadcaster_id },
+            headers: req.twitchAppHeaders!
+        });
+    }
+
+    async getChannelInformation(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/channels`, {
+            params: { broadcaster_id: req.params.broadcaster_id },
+            headers: req.twitchAppHeaders!
+        });
+    }
 }
 
 export default AppService;

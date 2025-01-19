@@ -15,7 +15,14 @@ class TwitchUserClient {
         // AND can lead to security vulnerabilities
         // Yes, it's annoying. Just do it.
         'user:read:email',
-        'channel:edit:commercial'
+        'channel:edit:commercial',
+        'channel:read:ads',
+        'channel:manage:ads',
+        'bits:read',
+        'channel:manage:broadcast',
+        'channel:read:editors',
+        'user:read:follows',
+        
     ];
 
     constructor() {
