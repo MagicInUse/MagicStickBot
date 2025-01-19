@@ -8,8 +8,14 @@ class TwitchUserClient {
     private tokenUrl: string;
     private accessToken: string | null;
     private scopes: string[] = [
-        // Declare required scopes here
-        'user:read:email'
+        // TODO: Declare all required scopes here
+        // No, there is not a 'get all' scope
+        // You should only request the scopes you need
+        // Requesting unnecessary scopes can lead to your application being rejected
+        // AND can lead to security vulnerabilities
+        // Yes, it's annoying. Just do it.
+        'user:read:email',
+        'channel:edit:commercial'
     ];
 
     constructor() {

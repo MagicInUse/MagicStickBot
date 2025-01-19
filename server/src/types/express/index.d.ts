@@ -3,11 +3,11 @@ import { Request } from 'express';
 declare global {
     namespace Express {
         interface Request {
-            twitchHeaders?: {
+            twitchUserHeaders?: {
                 'Client-Id': string;
                 'Authorization': string;
             }
-            appHeaders?: {
+            twitchAppHeaders?: {
                 'Client-Id': string;
                 'Authorization': string;
             }

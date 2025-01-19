@@ -13,9 +13,15 @@ class AppService {
     async getUserByLogin(req: Request, login: string): Promise<any> {
         return axios.get(`${this.API_BASE}/users`, {
             params: { login },
-            headers: req.appHeaders!
+            headers: req.twitchAppHeaders!
         });
     }
+    
+    // From here on, the order of the endpoints in the documentation is the order we will follow
+    // https://dev.twitch.tv/docs/api/reference
+    // Any skips are User only requests
+
+    
 }
 
 export default AppService;
