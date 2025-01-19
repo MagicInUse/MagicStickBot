@@ -1,23 +1,24 @@
 import { Request } from 'express';
 import axios from 'axios';
-import TwitchUserClient from '../auth/twitchUser.js';
 
 class UserService {
-    private twitchUserClient: TwitchUserClient;
     private readonly API_BASE = 'https://api.twitch.tv/helix';
 
-    constructor() {
-        this.twitchUserClient = new TwitchUserClient();
+    // This method is used to get the currently logged in user
+    // Unlike the /users/:login endpoint, this endpoint does not require a login parameter
+    // The endpoint will return the user that is currently logged in via the user_access_token
+    async getLoggedInUser(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/users`, {
+            headers: req.twitchHeaders!
+        });
     }
 
-    async getLoggedInUser(req: Request): Promise<any> {
-        const token = await this.twitchUserClient.getAccessToken(req);
-        
-        return axios.get(`${this.API_BASE}/users`, {
-            headers: {
-                'Client-Id': process.env.TWITCH_APP_CLIENT_ID!,
-                'Authorization': `Bearer ${token}`
-            }
+    async startCommercial(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/channels/commercial`, {
+            broadcaster_id: req.body.broadcaster_id,
+            length: req.body.length
+        }, {
+            headers: req.twitchHeaders!
         });
     }
 }

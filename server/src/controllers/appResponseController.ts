@@ -11,7 +11,7 @@ class AppResponseController {
     getUserByLogin = async (req: Request, res: Response): Promise<void> => {
         try {
             const { login } = req.params;
-            const response = await this.appService.getUserByLogin(login);
+            const response = await this.appService.getUserByLogin(req, login);
             res.json(response.data);
         } catch (error: any) {
             res.status(500).json({

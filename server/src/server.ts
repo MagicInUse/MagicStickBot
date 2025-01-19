@@ -3,7 +3,6 @@ import express from 'express';
 import https from 'https';
 import fs from 'fs';
 import router from './routes/index.js';
-import TwitchClient from './services/twitch/auth/twitchClient.js';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -16,9 +15,6 @@ app.use(router);
 
 let privateKey: string;
 let certificate: string;
-
-const twitchAppClient = new TwitchClient();
-await twitchAppClient.initialize();
 
 if (process.env.NODE_ENV != 'production') {
   privateKey = fs.readFileSync('../private.key', 'utf8');

@@ -4,9 +4,7 @@ import TwitchUserClient from '../services/twitch/auth/twitchUser.js';
 const twitchUserClient = new TwitchUserClient();
 
 const userAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        console.log('Cookies:', req.cookies); // Debug cookie content
-        
+    try {        
         if (!req.cookies.user_access_token) {
             console.log('No token found, redirecting to login');
             res.redirect('/twitch/login');
@@ -14,7 +12,6 @@ const userAuth = async (req: Request, res: Response, next: NextFunction): Promis
         }
 
         const token = await twitchUserClient.getAccessToken(req);
-        console.log('Token retrieved:', !!token); // Debug token retrieval
 
         if (!token) {
             res.status(401).json({
@@ -24,8 +21,10 @@ const userAuth = async (req: Request, res: Response, next: NextFunction): Promis
             return;
         }
 
-        req.headers.authorization = `Bearer ${token}`;
-        req.headers.client_id = process.env.TWITCH_APP_CLIENT_ID!;
+        req.twitchHeaders = {
+            'Client-Id': process.env.TWITCH_APP_CLIENT_ID!,
+            'Authorization': `Bearer ${token}`
+        };
         next();
     } catch (error) {
         console.error('User authorization failed:', error);
