@@ -19,7 +19,7 @@ class TwitchUserClient {
         'user:read:moderated_channels',
         'user:read:blocked_users',
         'user:write:chat',
-        'user:bot',
+        //'user:bot', // Used for chatbot
         'bits:read',
         'channel:edit:commercial',
         'channel:read:ads',
@@ -34,7 +34,7 @@ class TwitchUserClient {
         'channel:manage:polls',
         'channel:manage:predictions',
         'channel:manage:raids',
-        'channel:bot',
+        'channel:bot', // Used for channel chatbot is allowed to access
         'moderation:read',
         'moderator:read:chatters',
         'moderator:manage:chat_settings',
