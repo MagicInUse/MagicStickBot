@@ -17,6 +17,7 @@ class TwitchUserClient {
         'user:read:email',
         'user:read:follows',
         'user:read:moderated_channels',
+        'user:read:blocked_users',
         'user:write:chat',
         'user:bot',
         'bits:read',

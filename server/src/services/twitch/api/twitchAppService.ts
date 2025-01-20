@@ -130,6 +130,13 @@ class AppService {
             headers: req.twitchAppHeaders!
         });
     }
+
+    async getChannelTeams(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/teams/channel`, {
+            params: { broadcaster_id: req.params.broadcaster_id! },
+            headers: req.twitchAppHeaders!
+        });
+    }
 }
 
 export default AppService;

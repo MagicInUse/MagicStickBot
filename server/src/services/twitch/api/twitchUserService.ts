@@ -715,6 +715,100 @@ class UserService {
             headers: req.twitchUserHeaders!
         });
     }
+
+    // Requires channel:manage:broadcast scope
+    async createStreamMarker(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/streams/markers`, {
+            user_id: req.params.user_id!,
+            description: req.body.description || undefined
+        }, {
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip getStreamMarkers
+
+    // Requires channel:read:subscriptions scope
+    async getBroadcasterSubscriptions(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/subscriptions`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                user_id: req.query.user_id || undefined,
+                first: req.query.first || undefined,
+                after: req.query.after || undefined,
+                before: req.query.before || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires user:read:subscriptions scope
+    async checkUserSubscription(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/subscriptions/user`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                user_id: req.query.user_id!
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip getAllStreamTags,
+    //      getStreamTags
+    // Both deprecated and return empty array as of [ July 13, 2023 ]
+
+    // Skip getChannelTeams for User. Find in twitchAppService
+
+    // Skip getTeams
+
+    // getUsers at top of document
+
+    // Skip updateUser
+
+    // Requires user:read:blocked_users scope
+    async getBlockedUsers(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/users/blocks`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires user:manage:blocked_users scope
+    async blockUser(req: Request): Promise<any> {
+        return axios.put(`${this.API_BASE}/users/blocks`, {
+            target_user_id: req.body.target_user_id!,
+            source_context: req.body.source_context || undefined,
+            reason: req.body.reason || undefined
+        }, {
+            headers: {
+            ...req.twitchUserHeaders!,
+            'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    // Requires user:manage:blocked_users scope
+    async unblockUser(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/users/blocks`, {
+            params: {
+                target_user_id: req.params.target_user_id!
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip getUserExtensions,
+    //      getUserActiveExtensions,
+    //      updateUserExtensions
+
+    // Skip getVideos,
+    //      deleteVideos
+
+    // Skip sendWhisper
 }
 
 export default UserService;
