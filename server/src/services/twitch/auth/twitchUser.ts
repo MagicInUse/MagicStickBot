@@ -22,7 +22,15 @@ class TwitchUserClient {
         'channel:manage:broadcast',
         'channel:read:editors',
         'user:read:follows',
-        
+        'channel:manage:redemptions',
+        'channel:read:charity',
+        'moderator:read:chatters',
+        'moderator:manage:chat_settings',
+        'moderator:manage:announcements',
+        'moderator:manage:shoutouts',
+        'user:write:chat',
+        'user:bot',
+        'channel:bot'
     ];
 
     constructor() {
