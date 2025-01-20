@@ -118,7 +118,7 @@ class UserService {
         });
     }
 
-    //Requires moderator:read:followers scope
+    // Requires moderator:read:followers scope
     async getChannelFollwers(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/channels/followers`, {
             params: { 
@@ -169,7 +169,7 @@ class UserService {
 
     // Requires channel:read:redemptions
     // OR channel:manage:redemptions scope
-    // depending on context
+    // depending on context.
     async getCustomReward(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/channel_points/custom_rewards`, {
             params: { 
@@ -270,7 +270,7 @@ class UserService {
 
     // Skip getChannelChatBadges for User. Find in twitchAppService
 
-    //Skip getGlobalChatBadges
+    // Skip getGlobalChatBadges
 
     // Skip getChatSettings for User. Find in twitchAppService
 
@@ -331,7 +331,7 @@ class UserService {
 
     // Requires user:write:chat scope
     // Additionally, requires user:bot scope from chatting user
-    // and either channel:bot scope from broadcaster or moderator status
+    // and either channel:bot scope from broadcaster or moderator status.
     async sendChatMessage(req: Request): Promise<any> {
         return axios.post(`${this.API_BASE}/chat/messages`, {
             broadcaster_id: req.params.broadcaster_id!,
@@ -345,6 +345,226 @@ class UserService {
             }
         });
     }
+
+    // Skip getUserChatColor
+
+    // Skip updateUserChatColor
+
+    // Requires clips:edit scope
+    // Creating a clip is an asynchronous process that can take a short amount of time to complete.
+    // To determine whether the clip was successfully created,
+    // call Get Clips using the clip ID that this request returned.
+    // If Get Clips returns the clip, the clip was successfully created.
+    // If after 15 seconds Get Clips hasn’t returned the clip, assume it failed.
+    async createClip(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/clips`, {
+            broadcaster_id: req.params.broadcaster_id!,
+            has_delay: req.body.has_delay || undefined
+        }, {
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires no specific scope
+    async getClips(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/clips`, {
+            params: { 
+                broadcaster_id: req.params.broadcaster_id!,
+                game_id: req.query.game_id!,
+                id: req.query.id!,
+                after: req.query.after || undefined,
+                before: req.query.before || undefined,
+                ended_at: req.query.ended_at || undefined,
+                first: req.query.first || undefined,
+                started_at: req.query.started_at || undefined,
+                is_featured: req.query.is_featured || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip getContentClassificationLabels
+
+    // Skip getDropsEntitlements,
+    //      updateDropsEntitlements
+
+    // Skip getExtensionConfigurationSegment,
+    //      setExtensionConfigurationSegment,
+    //      getExtensionRequiredConfiguration,
+    //      sendExtensionPubSubMessage,
+    //      getExtensionLiveChannels,
+    //      getExtensionSecrets,
+    //      createExtensionSecret,
+    //      sendExtensionChatMessage,
+    //      getExtensions,
+    //      getReleasedExtensions,
+    //      getExtensionBitsProducts,
+    //      updateExtensionBitsProduct
+
+    // TODO: Research webhooks for EventSub Subscription
+    // Skip createEventSubSubscription,
+    //      deleteEventSubSubscription,
+    //      getEventSubSubscriptions
+
+    // Skip getTopGames,
+    //      getGames
+
+    // Requires channel:read:goals scope
+    async getCreatorGoals(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/goals`, {
+            params: { broadcaster_id: req.params.broadcaster_id! },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // These endpoints are currently in beta [ Jan 19 2025 ]
+    // Skip getChannelGuestStarSettings,
+    //      updateChannelGuestStarSettings,
+    //      getGuestStarSession,
+    //      createGuestStarSession,
+    //      endGuestStarSession,
+    //      getGuestStarInvites,
+    //      sendGuestStarInvite,
+    //      deleteGuestStarInvite,
+    //      assignGuestStarSlot,
+    //      updateGuestStarSlot,
+    //      deleteGuestStarSlot,
+    //      updateGuestStarSlotSettings
+
+    // Requires channel:read:hypre_train scope
+    //*******************************************************************/
+    // This is a one time request endpoint!
+    // To receive events as donations occur,
+    // subscribe to the Hype Train Events (Begin, Progress, End)
+    //*******************************************************************/
+    async getHypeTrainEvents(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/hypetrain/events`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                first: req.query.first || undefined,
+                after: req.query.after || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip checkAutoModStatus,
+    //      manageHeldAutoModMessages,
+    //      getAutoModSettings,
+    //      updateAutoModSettings
+
+    // Requires moderation:read
+    // OR the more defined:
+    // moderator:manage:banned_users scope
+    async getBannedUsers(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/moderation/banned`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                user_id: req.query.user_id || undefined,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined,
+                before: req.query.before || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires moderator:manage:banned_users scope
+    async banUser(req: Request): Promise<any> {
+        return axios.put(`${this.API_BASE}/moderation/bans`, {
+            broadcaster_id: req.params.broadcaster_id!,
+            moderator_id: req.params.moderator_id!,
+            data: {
+                user_id: req.body.user_id!,
+                reason: req.body.reason || undefined,
+                duration: req.body.duration || undefined
+            }
+        }, {
+            headers: {
+            ...req.twitchUserHeaders!,
+            'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    // Requires moderator:manage:banned_users scope
+    async unbanUser(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/moderation/bans`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                moderator_id: req.params.moderator_id!,
+                user_id: req.params.user_id!
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip getUnbanRequests,
+    //      resolveUnbanRequests
+
+    // Skip getBlockedTerms,
+    //      addBlockedTerm,
+    //      removeBlockedTerm
+
+    // Requires moderator:manage:chat_messages scope
+    async deleteChatMessages(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/moderation/chat`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                moderator_id: req.params.moderator_id!,
+                message_id: req.params.message_id!
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires user:read:moderated_channels scope
+    async getModeratedChannels(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/moderation/channels`, {
+            params: {
+                user_id: req.query.user_id!,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires moderation:read scope
+    async getModerators(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/moderation/moderators`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                user_id: req.query.user_id || undefined,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip addChannelModerator,
+    //      removeChannelModerator
+
+    // Requires channel:read:vips scope
+    async getVIPs(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/channel/vips`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                user_id: req.query.user_id || undefined,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip addChannelVIP,
+    //      removeChannelVIP,
+    //     updateShieldModeStatus,
+    //      getShieldModeStatus
+
+    
 }
 
 export default UserService;

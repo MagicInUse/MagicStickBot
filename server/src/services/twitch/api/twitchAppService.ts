@@ -53,7 +53,7 @@ class AppService {
         });
     }
 
-    //Skip getGlobalChatBadges
+    // Skip getGlobalChatBadges
 
     async getChatSettings(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/chat/settings`, {
@@ -77,6 +77,47 @@ class AppService {
             headers: req.twitchAppHeaders!
         });
     }
+
+    // Skip getUserChatColor
+
+    async getClips(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/clips`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                game_id: req.params.game_id!,
+                id: req.params.id!,
+                after: req.params.after || undefined,
+                before: req.params.before || undefined,
+                ended_at: req.params.ended_at || undefined,
+                first: req.params.first || undefined,
+                started_at: req.params.started_at || undefined,
+                is_featured: req.params.is_featured || undefined
+            },
+            headers: req.twitchAppHeaders!
+        });
+    }
+
+    // TODO: Research webhook implementations using Conduits
+    // Skip getConduits, 
+    //      createConduits, 
+    //      updateConduits, 
+    //      deleteConduits, 
+    //      getConduitShards, 
+    //      updateConduitShards
+
+    // Skip getContentClassificationLabels
+
+    // Skip getDropsEntitlements,
+    //      updateDropsEntitlements
+
+    // Skip getExtensionLiveChannels
+
+    // Skip getReleasedExtensions
+
+    // Skip getTopGames,
+    //      getGames
+
+    
 }
 
 export default AppService;
