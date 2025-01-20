@@ -560,11 +560,161 @@ class UserService {
     }
 
     // Skip addChannelVIP,
-    //      removeChannelVIP,
-    //     updateShieldModeStatus,
-    //      getShieldModeStatus
+    //      removeChannelVIP
 
-    
+    // Skip updateShieldModeStatus,
+    //     getShieldModeStatus
+
+    // Skip warnChatUser
+
+    // Requires channel:read:polls
+    // OR the more defined:
+    // channel:manage:polls scope
+    async getPolls(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/polls`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                id: req.query.id || undefined,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires channel:manage:polls scope
+    async createPoll(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/polls`, {
+            broadcaster_id: req.params.broadcaster_id!,
+            title: req.body.title!,
+            choices: req.body.choices!,
+            duration: req.body.duration!,
+            bits_voting_enabled: req.body.bits_voting_enabled || undefined,
+            bits_per_vote: req.body.bits_per_vote || undefined,
+            channel_points_voting_enabled: req.body.channel_points_voting_enabled || undefined,
+            channel_points_per_vote: req.body.channel_points_per_vote || undefined
+        }, {
+            headers: {
+            ...req.twitchUserHeaders!,
+            'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    // Requires channel:manage:polls scope
+    async endPoll(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/polls`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                id: req.params.id!,
+                status: req.body.status!
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires channel:read:predictions
+    // OR the more defined:
+    // channel:manage:predictions scope
+    async getPredictions(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/predictions`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                id: req.query.id || undefined,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires channel:manage:predictions scope
+    async createPrediction(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/predictions`, {
+            broadcaster_id: req.params.broadcaster_id!,
+            title: req.body.title!,
+            outcomes: req.body.outcomes!,
+            prediction_window: req.body.prediction_window!
+        }, {
+            headers: {
+            ...req.twitchUserHeaders!,
+            'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    // Requires channel:manage:predictions scope
+    async endPrediction(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/predictions`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                id: req.params.id!,
+                status: req.body.status!,
+                winning_outcome_id: req.body.winning_outcome_id || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires channel:manage:raids scope
+    async startRaid(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/raids`, {
+            from_broadcaster_id: req.params.from_broadcaster_id!,
+            to_broadcaster_id: req.params.to_broadcaster_id!,
+        }, {
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires channel:manage:raids scope
+    async cancelRaid(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/raids`, {
+            params: { broadcaster_id: req.params.broadcaster_id! },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Requires no specific scope
+    async getChannelStreamSchedule(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/schedule`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                id: req.query.id || undefined,
+                start_time: req.query.start_time || undefined,
+                utc_offset: req.query.utc_offset || undefined, // Not supported [ Jan 19 2025 ]
+                first: req.query.first || undefined,
+                after: req.query.after || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    // Skip getiCalendar
+
+    // Skip updateChannelStreamSchedule,
+    //      updateChannelStreamScheduleSegment,
+    //      createChannelStreamScheduleSegment,
+    //      updateChannelStreamScheduleSegment,
+    //      deleteChannelStreamScheduleSegment
+
+    // Skip searchCategories,
+    //      searchChannels
+
+    // Skip getStreamKey
+
+    // Skip getStreams
+
+    // Requires user:read:follows scope
+    async getFollowedStreams(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/streams/followed`, {
+            params: {
+                user_id: req.query.user_id!,
+                after: req.query.after || undefined,
+                first: req.query.first || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
 }
 
 export default UserService;

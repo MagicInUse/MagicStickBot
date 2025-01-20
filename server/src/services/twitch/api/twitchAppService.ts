@@ -117,7 +117,19 @@ class AppService {
     // Skip getTopGames,
     //      getGames
 
-    
+    async getChannelStreamSchedule(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/schedule`, {
+            params: {
+                broadcaster_id: req.params.broadcaster_id!,
+                id: req.params.id!,
+                start_time: req.params.start_time!,
+                utc_offset: req.params.utc_offset || undefined, // Not supported [ Jan 19 2025 ]
+                first: req.params.first || undefined,
+                after: req.params.after || undefined
+            },
+            headers: req.twitchAppHeaders!
+        });
+    }
 }
 
 export default AppService;
