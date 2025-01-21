@@ -402,9 +402,39 @@ class UserService {
     //      updateExtensionBitsProduct
 
     // TODO: Research webhooks for EventSub Subscription
-    // Skip createEventSubSubscription,
-    //      deleteEventSubSubscription,
-    //      getEventSubSubscriptions
+    // EventSubs require the scope of the subscription type
+    async createEventSubSubscription(req: Request): Promise<any> {
+        return axios.post(`${this.API_BASE}/eventsub/subscriptions`, {
+            type: req.body.type!,
+            version: req.body.version!,
+            condition: req.body.condition!,
+            transport: req.body.transport!
+        }, {
+            headers: {
+            ...req.twitchUserHeaders!,
+            'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    async deleteEventSubSubscription(req: Request): Promise<any> {
+        return axios.delete(`${this.API_BASE}/eventsub/subscriptions`, {
+            params: { id: req.params.id! },
+            headers: req.twitchUserHeaders!
+        });
+    }
+
+    async getEventSubSubscriptions(req: Request): Promise<any> {
+        return axios.get(`${this.API_BASE}/eventsub/subscriptions`, {
+            params: {
+                status: req.query.status || undefined,
+                type: req.query.type || undefined,
+                after: req.query.after || undefined,
+                user_id: req.query.user_id || undefined
+            },
+            headers: req.twitchUserHeaders!
+        });
+    }
 
     // Skip getTopGames,
     //      getGames

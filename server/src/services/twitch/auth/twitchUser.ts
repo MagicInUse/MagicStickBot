@@ -14,6 +14,7 @@ class TwitchUserClient {
         // Requesting unnecessary scopes can lead to your application being rejected
         // AND can lead to security vulnerabilities
         // Yes, it's annoying. Just do it.
+        'openid',
         'user:read:email',
         'user:read:follows',
         'user:read:moderated_channels',
@@ -28,12 +29,16 @@ class TwitchUserClient {
         'channel:read:charity',
         'channel:read:goals',
         'channel:read:hype_train',
+        'channel:read:subscriptions',
         'channel:manage:ads',
         'channel:manage:broadcast',
         'channel:manage:redemptions',
         'channel:manage:polls',
         'channel:manage:predictions',
         'channel:manage:raids',
+        'channel:moderate',
+        'chat:edit',
+        'chat:read',
         'moderation:read',
         'moderator:read:chatters',
         'moderator:manage:chat_settings',

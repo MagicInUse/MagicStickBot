@@ -1,25 +1,27 @@
 import WebSocket from 'ws';
+import UserService from '../api/twitchUserService.js';
 
 export class EventSubService {
     private readonly EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws';
     private websocketSessionId: string | null = null;
     private websocketClient: WebSocket | null = null;
     private userAccessToken: string;
+    private channelId: string;
+    private botUserId: string;
+    private userService: UserService;
 
-    constructor(accessToken: string) {
+    constructor(accessToken: string, channelId: string, botUserId: string) {
         this.userAccessToken = accessToken;
+        this.channelId = channelId;
+        this.botUserId = botUserId;
+        this.userService = new UserService();
     }
 
-    public async initialize(botUserId: string, channelId: string) {
+    public async initialize(): Promise<void> {
         try {
             await this.validateAuth();
             this.startWebSocketClient();
-            
-            // Store IDs for later use
-            process.env.TWITCH_BOT_USER_ID = botUserId;
-            process.env.TWITCH_CHANNEL_USER_ID = channelId;
         } catch (error) {
-            console.error('Failed to initialize EventSub service:', error);
             throw error;
         }
     }
@@ -31,12 +33,13 @@ export class EventSubService {
                     'Authorization': `Bearer ${this.userAccessToken}`
                 }
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Token validation failed: ${response.statusText}`);
             }
+    
+            console.log('Token validated');
         } catch (error) {
-            console.error('Auth validation failed:', error);
             throw error;
         }
     }
@@ -63,6 +66,37 @@ export class EventSubService {
         });
     }
 
+    private async registerEventSubListeners() {
+        try {
+            const subscriptionData = {
+                type: 'channel.chat.message',
+                version: '1',
+                condition: {
+                    broadcaster_user_id: this.channelId,
+                    user_id: this.botUserId
+                },
+                transport: {
+                    method: 'websocket',
+                    session_id: this.websocketSessionId
+                }
+            };
+
+            const mockRequest = {
+                body: subscriptionData,
+                twitchUserHeaders: {
+                    'Authorization': `Bearer ${this.userAccessToken}`,
+                    'Client-Id': process.env.TWITCH_APP_CLIENT_ID!
+                }
+            } as any;
+
+            await this.userService.createEventSubSubscription(mockRequest);
+            console.log('Successfully registered EventSub subscription');
+        } catch (error) {
+            console.error('Failed to register EventSub subscription:', error);
+            throw error;
+        }
+    }
+
     private async handleWebSocketMessage(data: any) {
         switch (data.metadata.message_type) {
             case 'session_welcome':
@@ -79,40 +113,6 @@ export class EventSubService {
                 this.websocketClient?.close();
                 this.startWebSocketClient();
                 break;
-        }
-    }
-
-    private async registerEventSubListeners() {
-        try {
-            const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.userAccessToken}`,
-                    'Client-Id': process.env.TWITCH_APP_CLIENT_ID!,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: 'channel.chat.message',
-                    version: '1',
-                    condition: {
-                        broadcaster_user_id: process.env.TWITCH_CHANNEL_USER_ID,
-                        user_id: process.env.TWITCH_BOT_USER_ID
-                    },
-                    transport: {
-                        method: 'websocket',
-                        session_id: this.websocketSessionId
-                    }
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to register EventSub listener: ${response.statusText}`);
-            }
-
-            console.log('Successfully registered EventSub listener');
-        } catch (error) {
-            console.error('Failed to register EventSub listener:', error);
-            throw error;
         }
     }
 
