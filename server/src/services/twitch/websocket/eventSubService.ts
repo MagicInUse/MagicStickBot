@@ -40,6 +40,7 @@ class TwitchEventSubService {
         this.reconnectAttempts = 0;
         this.botUserId = process.env.TWITCH_CHATBOT_USER_ID!;
         this.clientId = process.env.TWITCH_APP_CLIENT_ID!;
+        // TODO: Set the channel ID to the logged in user's ID
         this.channelId = process.env.TWITCH_CHATBOT_CHANNEL_ID!;
         this.userService = userService;
         this.twitchClient = new TwitchClient();
@@ -154,6 +155,10 @@ class TwitchEventSubService {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    // TODO: Declare all subscription events here
+                    // ***Subscription events here***
+                    // Similar to scopes (services/twitch/auth/twitchUser.ts)
+                    // These provide the permissions for the subscriptions
                     type: 'channel.chat.message',
                     version: '1',
                     condition: {
@@ -189,8 +194,10 @@ class TwitchEventSubService {
             const event = message.payload.event;
             console.log(`MSG #${event.broadcaster_user_login} <${event.chatter_user_login}> ${event.message.text}`);
 
-            if (event.message.text.trim().toLowerCase().startsWith('why') && event.chatter_user_login !== this.botUserId) {
-                await this.sendChatMessage('Why not?');
+            if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
+                if (event.message.text.trim().toLowerCase().startsWith('why')) {
+                    await this.sendChatMessage('Why not?');
+                }
             }
         }
     }
