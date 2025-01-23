@@ -1,132 +1,236 @@
 import WebSocket from 'ws';
 import UserService from '../api/twitchUserService.js';
+import TwitchClient from '../auth/twitchClient.js';
+import { Request } from 'express';
 
-export class EventSubService {
-    private readonly EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws';
-    private websocketSessionId: string | null = null;
-    private websocketClient: WebSocket | null = null;
-    private userAccessToken: string;
-    private channelId: string;
-    private botUserId: string;
+interface EventSubMessage {
+    metadata: {
+        message_type: string;
+        subscription_type: string;
+    };
+    payload: {
+        session: {
+            id: string;
+        };
+        event?: {
+            broadcaster_user_login: string;
+            chatter_user_login: string;
+            message: {
+                text: string;
+            };
+        };
+    };
+}
+
+class TwitchEventSubService {
+    private ws?: WebSocket;
+    private readonly EVENTSUB_URL = 'wss://eventsub.wss.twitch.tv/ws';
+    private sessionId: string | null;
+    private reconnectAttempts: number;
+    private readonly MAX_RECONNECT_ATTEMPTS = 5;
+    private readonly botUserId: string;
+    private readonly clientId: string;
+    private  channelId: string;
     private userService: UserService;
+    private twitchClient: TwitchClient;
+    private userAccessToken: string;
 
-    constructor(accessToken: string, channelId: string, botUserId: string) {
-        this.userAccessToken = accessToken;
-        this.channelId = channelId;
-        this.botUserId = botUserId;
-        this.userService = new UserService();
+    constructor(userService: UserService) {
+        this.sessionId = null;
+        this.reconnectAttempts = 0;
+        this.botUserId = process.env.TWITCH_CHATBOT_USER_ID!;
+        this.clientId = process.env.TWITCH_APP_CLIENT_ID!;
+        this.channelId = process.env.TWITCH_CHATBOT_CHANNEL_ID!;
+        this.userService = userService;
+        this.twitchClient = new TwitchClient();
+        this.userAccessToken = '';
     }
 
-    public async initialize(): Promise<void> {
+    public async connect(req: Request): Promise<void> {
         try {
-            await this.validateAuth();
-            this.startWebSocketClient();
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    private async validateAuth() {
-        try {
-            const response = await fetch('https://id.twitch.tv/oauth2/validate', {
-                headers: {
-                    'Authorization': `Bearer ${this.userAccessToken}`
-                }
-            });
-    
-            if (!response.ok) {
-                throw new Error(`Token validation failed: ${response.statusText}`);
+            if (!req.twitchUserHeaders) {
+                throw new Error('No auth headers present');
             }
     
-            console.log('Token validated');
+            // Extract token from Authorization header
+            this.userAccessToken = req.twitchUserHeaders.Authorization.split(' ')[1];
+    
+            const userResponse = await this.userService.getLoggedInUser(req);
+    
+            if (!userResponse?.data?.[0]?.id) {
+                throw new Error('Invalid user response: missing user ID');
+            }
+    
+            this.channelId = userResponse.data[0].id;
+            
+            this.ws = new WebSocket(this.EVENTSUB_URL);
+            this.setupWebSocketHandlers(req);
         } catch (error) {
-            throw error;
+            console.error('Failed to connect:', error);
+            await this.handleReconnect(req);
         }
     }
 
-    private startWebSocketClient() {
-        this.websocketClient = new WebSocket(this.EVENTSUB_WEBSOCKET_URL);
+    private setupWebSocketHandlers(req: Request): void {
+        if (!this.ws) return;
 
-        this.websocketClient.on('error', (error) => {
-            console.error('WebSocket error:', error);
-        });
-
-        this.websocketClient.on('open', () => {
-            console.log('WebSocket connection opened');
-        });
-
-        this.websocketClient.on('message', (data) => {
-            this.handleWebSocketMessage(JSON.parse(data.toString()));
-        });
-
-        this.websocketClient.on('close', () => {
-            console.log('WebSocket connection closed');
-            // Implement reconnection logic here
-            setTimeout(() => this.startWebSocketClient(), 5000);
-        });
+        this.ws.on('open', this.handleOpen.bind(this));
+        this.ws.on('message', this.handleMessage.bind(this));
+        this.ws.on('error', this.handleError.bind(this));
+        this.ws.on('close', () => this.handleClose(req));
     }
 
-    private async registerEventSubListeners() {
+    private handleOpen(): void {
+        console.log('Connected to Twitch EventSub WebSocket');
+        this.reconnectAttempts = 0;
+    }
+
+    private handleMessage(data: WebSocket.RawData): void {
         try {
-            const subscriptionData = {
-                type: 'channel.chat.message',
-                version: '1',
-                condition: {
-                    broadcaster_user_id: this.channelId,
-                    user_id: this.botUserId
-                },
-                transport: {
-                    method: 'websocket',
-                    session_id: this.websocketSessionId
-                }
-            };
-
-            const mockRequest = {
-                body: subscriptionData,
-                twitchUserHeaders: {
-                    'Authorization': `Bearer ${this.userAccessToken}`,
-                    'Client-Id': process.env.TWITCH_APP_CLIENT_ID!
-                }
-            } as any;
-
-            await this.userService.createEventSubSubscription(mockRequest);
-            console.log('Successfully registered EventSub subscription');
+            const message: EventSubMessage = JSON.parse(data.toString());
+            this.processMessage(message);
         } catch (error) {
-            console.error('Failed to register EventSub subscription:', error);
-            throw error;
+            console.error('Error processing message:', error);
         }
     }
 
-    private async handleWebSocketMessage(data: any) {
-        switch (data.metadata.message_type) {
+    private processMessage(message: EventSubMessage): void {
+        switch (message.metadata.message_type) {
             case 'session_welcome':
-                this.websocketSessionId = data.payload.session.id;
-                await this.registerEventSubListeners();
+                this.sessionId = message.payload.session.id;
+                console.log('Session established:', this.sessionId);
+                this.subscribeToEvents();
                 break;
-
             case 'notification':
-                await this.handleNotification(data);
+                this.handleNotification(message);
                 break;
-
-            case 'reconnect':
-                // Handle reconnect message
-                this.websocketClient?.close();
-                this.startWebSocketClient();
+            case 'session_keepalive':
+                // Optional: Log keepalive
+                break;
+            case 'revocation':
+                console.log('Subscription revoked:', message.payload);
                 break;
         }
     }
 
-    private async handleNotification(data: any) {
-        switch (data.metadata.subscription_type) {
-            case 'channel.chat.message':
-                await this.handleChatMessage(data.payload.event);
-                break;
-            // Add more event types as needed
+    private handleError(error: Error): void {
+        console.error('WebSocket error:', error);
+    }
+
+    private async handleClose(req: Request): Promise<void> {
+        console.log('WebSocket connection closed');
+        await this.handleReconnect(req);
+    }
+
+    private async handleReconnect(req: Request): Promise<void> {
+        if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
+            console.error('Max reconnection attempts reached');
+            return;
+        }
+
+        this.reconnectAttempts++;
+        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+        
+        console.log(`Attempting to reconnect in ${delay}ms`);
+        setTimeout(() => this.connect(req), delay);
+    }
+
+    private async subscribeToEvents(): Promise<void> {
+        try {
+            if (!this.channelId || !this.sessionId || !this.userAccessToken) {
+                throw new Error('Missing required subscription parameters');
+            }
+    
+            console.log('Attempting subscription with:', {
+                channelId: this.channelId,
+                sessionId: this.sessionId
+            });
+    
+            const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Client-Id': this.clientId,
+                    'Authorization': `Bearer ${this.userAccessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'channel.chat.message',
+                    version: '1',
+                    condition: {
+                        broadcaster_user_id: this.channelId,
+                        user_id: this.channelId
+                    },
+                    transport: {
+                        method: 'websocket',
+                        session_id: this.sessionId
+                    }
+                })
+            });
+    
+            const data = await response.json();
+            
+            if (!response.ok) {
+                console.error('Subscription failed:', {
+                    status: response.status,
+                    data: data
+                });
+                throw new Error(`Subscription failed: ${data.message}`);
+            }
+    
+            console.log('Successfully subscribed to chat messages');
+        } catch (error) {
+            console.error('Error subscribing to events:', error);
+            this.ws?.close();
         }
     }
 
-    private async handleChatMessage(event: any) {
-        console.log(`Chat message from ${event.chatter_user_login}: ${event.message.text}`);
-        // Implement your chat message handling logic here
+    private async handleNotification(message: EventSubMessage): Promise<void> {
+        if (message.metadata.subscription_type === 'channel.chat.message' && message.payload.event) {
+            const event = message.payload.event;
+            console.log(`MSG #${event.broadcaster_user_login} <${event.chatter_user_login}> ${event.message.text}`);
+
+            if (event.message.text.trim().toLowerCase().startsWith('why') && event.chatter_user_login !== this.botUserId) {
+                await this.sendChatMessage('Why not?');
+            }
+        }
+    }
+
+    private async sendChatMessage(message: string): Promise<void> {
+        try {
+            const token = await this.twitchClient.getAccessToken();
+            const response = await fetch('https://api.twitch.tv/helix/chat/messages', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Client-Id': this.clientId,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    broadcaster_id: this.channelId,
+                    sender_id: this.botUserId,
+                    message: message
+                })
+            });
+
+            if (response.status !== 200) {
+                const data = await response.json();
+                console.error('Failed to send chat message:', data);
+                return;
+            }
+
+            console.log('Sent chat message:', message);
+        } catch (error) {
+            console.error('Error sending chat message:', error);
+        }
+    }
+
+    public isConnected(): boolean {
+        return this.ws?.readyState === WebSocket.OPEN;
+    }
+
+    public getSessionId(): string | null {
+        return this.sessionId;
     }
 }
+
+export default TwitchEventSubService;

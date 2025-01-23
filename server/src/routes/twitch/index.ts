@@ -1,6 +1,7 @@
 import express from 'express';
 import UserClientAuthController from '../../controllers/userClientAuthController.js';
 import EventSubController from '../../controllers/eventSubController.js';
+import userAuth from '../../middleware/userAuth.js';
 import twitchAppAPIRouter from './app.js';
 import twitchUserAPIRouter from './user.js';
 
@@ -22,6 +23,6 @@ twitchRouter.get('/login', userClientAuthController.handleLogin);
 twitchRouter.get('/callback', userClientAuthController.handleCallback);
 
 // ${BASE_URL}/twitch/connect
-twitchRouter.get('/connect', (req, res) => eventSubController.handleConnection(req, res));
+twitchRouter.get('/connect', userAuth, (req, res) => eventSubController.handleConnection(req, res));
 
 export default twitchRouter;

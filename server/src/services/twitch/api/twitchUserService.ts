@@ -8,9 +8,20 @@ class UserService {
     // Unlike the /users/:login endpoint, this endpoint does not require a login parameter
     // The endpoint will return the user that is currently logged in via the user_access_token
     async getLoggedInUser(req: Request): Promise<any> {
-        return axios.get(`${this.API_BASE}/users`, {
-            headers: req.twitchUserHeaders!
-        });
+        try {
+            if (!req.twitchUserHeaders) {
+                throw new Error('No auth headers present');
+            }
+    
+            const response = await axios.get('https://api.twitch.tv/helix/users', {
+                headers: req.twitchUserHeaders
+            });
+
+            return response.data;
+        } catch (error) {
+            console.error('Failed to get user:', error);
+            throw error;
+        }
     }
 
     // From here on, the order of the endpoints in the documentation is the order we will follow

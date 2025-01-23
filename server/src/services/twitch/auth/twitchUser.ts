@@ -15,6 +15,7 @@ class TwitchUserClient {
         // AND can lead to security vulnerabilities
         // Yes, it's annoying. Just do it.
         'openid',
+        'user:read:chat',
         'user:read:email',
         'user:read:follows',
         'user:read:moderated_channels',
