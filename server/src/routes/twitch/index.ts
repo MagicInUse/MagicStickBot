@@ -5,27 +5,22 @@ import userAuth from '../../middleware/userAuth.js';
 import twitchAppAPIRouter from './app.js';
 import twitchUserAPIRouter from './user.js';
 
-
 const twitchRouter = express.Router();
 const userClientAuthController = new UserClientAuthController();
 const eventSubController = new EventSubController();
 
-// ${BASE_URL}/twitch/app
+// API Routes
 twitchRouter.use('/app', userAuth, twitchAppAPIRouter);
-
-// ${BASE_URL}/twitch/user
 twitchRouter.use('/user', userAuth, twitchUserAPIRouter);
 
-// ${BASE_URL}/twitch/login
+// Auth Routes
 twitchRouter.get('/login', userClientAuthController.handleLogin);
-
-// ${BASE_URL}/twitch/callback
 twitchRouter.get('/callback', userClientAuthController.handleCallback);
 
-// ${BASE_URL}/twitch/connect
+// Connection Routes
 twitchRouter.get('/connect', userAuth, eventSubController.handleConnection);
-
-// ${BASE_URL}/twitch/disconnect
 twitchRouter.get('/disconnect', userAuth, eventSubController.handleDisconnection);
+twitchRouter.get('/auto-connect', userAuth, eventSubController.handleAutoConnect);
+twitchRouter.get('/connection-status', userAuth, eventSubController.handleConnectionStatus);
 
 export default twitchRouter;

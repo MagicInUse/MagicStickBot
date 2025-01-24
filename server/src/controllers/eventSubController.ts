@@ -37,6 +37,49 @@ class EventSubController {
         }
     };
 
+    public isConnected(userId: string): boolean {
+        return this.eventSubService.isConnected(userId);
+    }
+
+    public handleAutoConnect = async (req: Request, res: Response): Promise<void> => {
+        const baseUrl = process.env.NODE_ENV === 'production' ? process.env.BASE_URL : 'https://localhost:5173';
+        const { session } = req.query;
+    
+        try {
+            if (session === 'new') {
+                // Connect without sending response
+                await this.eventSubService.connect(req);
+            }
+            
+            // Single redirect to dashboard
+            res.redirect(`${baseUrl}/dashboard`);
+        } catch (error) {
+            console.error('Auto-connect error:', error);
+            res.redirect(`${baseUrl}/error?message=connection_failed`);
+        }
+    };
+
+    public handleConnectionStatus = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userResponse = await this.userService.getLoggedInUser(req);
+            const userId = userResponse.data[0]?.id;
+
+            if (!userId) {
+                res.status(401).json({ error: 'user_not_found' });
+                return;
+            }
+
+            const isConnected = this.isConnected(userId);
+            res.json({ connected: isConnected, userId });
+        } catch (error) {
+            console.error('Connection status check error:', error);
+            res.status(500).json({ 
+                error: 'status_check_failed',
+                message: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
+    };
+
     public handleDisconnection = async (req: Request, res: Response): Promise<void> => {
         try {
             const userResponse = await this.userService.getLoggedInUser(req);

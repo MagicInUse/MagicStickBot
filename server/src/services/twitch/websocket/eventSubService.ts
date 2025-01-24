@@ -309,6 +309,16 @@ class TwitchEventSubService {
         return connection?.readyState === WebSocket.OPEN;
     }
 
+    public getConnectionStatus(userId: string): {
+        connected: boolean;
+        sessionId: string | null;
+    } {
+        return {
+            connected: this.isConnected(userId),
+            sessionId: this.getSessionId(userId)
+        };
+    }
+
     public getSessionId(userId: string): string | null {
         return this.userSessions.get(userId) || null;
     }

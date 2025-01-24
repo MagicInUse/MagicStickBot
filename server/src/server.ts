@@ -13,10 +13,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(router);
 
-app.get('/dashboard', (_req, res) => {
-  res.send('Welcome to your dashboard!');
-});
-
 let privateKey: string;
 let certificate: string;
 

@@ -2,88 +2,68 @@ import crypto from 'crypto';
 import { Request, Response } from 'express';
 import TwitchUserClient from '../services/twitch/auth/twitchUser.js';
 
+interface AuthState {
+    state: string;
+    redirectPath: string;
+    timestamp: number;
+}
+
 class UserClientAuthController {
+    private readonly TOKEN_COOKIE_NAME = 'user_access_token';
     private twitchUserClient: TwitchUserClient;
-    private stateStore: Map<string, boolean>;
+    private stateStore: Map<string, AuthState>;
 
     constructor() {
         this.twitchUserClient = new TwitchUserClient();
-        this.stateStore = new Map<string, boolean>();
+        this.stateStore = new Map<string, AuthState>();
     }
 
-    private generateState(): string {
-        return crypto.randomBytes(16).toString('hex');
+    private generateState(redirectPath: string = '/dashboard'): string {
+        const state = crypto.randomBytes(16).toString('hex');
+        this.stateStore.set(state, {
+            state,
+            redirectPath,
+            timestamp: Date.now()
+        });
+        return state;
     }
 
-    public handleLogin = (_req: Request, res: Response): void => {
-        const state = this.generateState();
-        this.stateStore.set(state, true);
+    public handleLogin = (req: Request, res: Response): void => {
+        const { redirect = '/dashboard' } = req.query;
+        const state = this.generateState(redirect as string);
         const authorizationUrl = this.twitchUserClient.getAuthorizationUrl(state);
         res.redirect(authorizationUrl);
     };
 
     public handleCallback = async (req: Request, res: Response): Promise<void> => {
+        const { code, state } = req.query;
         const baseURL = process.env.NODE_ENV === 'production' ? process.env.BASE_URL : 'https://localhost:5173';
-        const { code, state, error, error_description } = req.query;
-
-        // Handle Twitch OAuth errors
-        if (error) {
-            console.error('Twitch OAuth error:', error, error_description);
-            res.status(400).json({
-                error: error,
-                description: error_description
-            });
-            return;
-        }
-
-        // Validate required parameters
-        if (!code || !state) {
-            res.status(400).json({
-                error: 'invalid_request',
-                description: 'Missing required parameters'
-            });
-            return;
-        }
-
-        // Verify state
-        if (!this.stateStore.has(state as string)) {
-            res.status(400).json({
-                error: 'invalid_state',
-                description: 'State mismatch. Possible CSRF attack.'
-            });
-            return;
-        }
-
-        // Clean up used state
-        this.stateStore.delete(state as string);
-
+    
         try {
-            // Exchange code for token
-            const accessToken = await this.twitchUserClient.exchangeCodeForToken(code as string, res);
-
-            if (!accessToken) {
-                res.status(500).json({
-                    error: 'token_error',
-                    description: 'Failed to obtain access token'
-                });
-                return;
+            // Validate state
+            const storedState = this.stateStore.get(state as string);
+            if (!storedState) {
+                throw new Error('Invalid state parameter');
             }
-
-            // Store the token in a cookie
-            res.cookie('user_access_token', accessToken, {
+    
+            const accessToken = await this.twitchUserClient.exchangeCodeForToken(code as string, res);
+            
+            // Set auth cookies
+            res.cookie(this.TOKEN_COOKIE_NAME, accessToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-            })
-            
-            .redirect(`${baseURL}/dashboard`);
-        } catch (error: any) {
-            console.error('Authentication error:', error);
-            res.status(500).json({
-                error: 'server_error',
-                description: error.message || 'An unexpected error occurred'
+                sameSite: 'lax',
+                maxAge: 24 * 60 * 60 * 1000
             });
+    
+            // Clean up state
+            this.stateStore.delete(state as string);
+    
+            // Redirect to API endpoint, not client URL
+            res.redirect('/twitch/auto-connect?session=new');
+        } catch (error) {
+            console.error('Auth callback error:', error);
+            res.redirect(`${baseURL}/error?message=auth_failed`);
         }
     };
 }
