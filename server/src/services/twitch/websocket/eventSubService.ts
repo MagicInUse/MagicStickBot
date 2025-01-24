@@ -217,7 +217,7 @@ class TwitchEventSubService {
             if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
                 // TODO: Make dynamic way to get different bot text responses from front-end GUI options
                 if (event.message.text.trim().toLowerCase().startsWith('why')) {
-                    await this.sendChatMessage('Why not?', event.broadcaster_user_login);
+                    await this.sendChatMessage('Why not?', event.broadcaster_user_id);
                 }
                 const firstWord = event.message.text.trim().split(' ')[0].toLowerCase();
                 if (firstWord === 'hello') {
