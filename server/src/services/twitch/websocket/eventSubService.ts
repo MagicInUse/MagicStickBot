@@ -14,7 +14,7 @@ interface EventSubMessage {
         };
         event?: {
             broadcaster_user_login: string;
-            chatter_user_login: string;
+            user_login: string;
             message: {
                 text: string;
             };
@@ -142,47 +142,56 @@ class TwitchEventSubService {
                 throw new Error('Missing required subscription parameters');
             }
     
-            console.log('Attempting subscription with:', {
-                channelId: this.channelId,
-                sessionId: this.sessionId
-            });
-    
-            const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-                method: 'POST',
-                headers: {
-                    'Client-Id': this.clientId,
-                    'Authorization': `Bearer ${this.userAccessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    // TODO: Declare all subscription events here
-                    // ***Subscription events here***
-                    // Similar to scopes (services/twitch/auth/twitchUser.ts)
-                    // These provide the permissions for the subscriptions
+            // Subscription types setup, similar to user scopes
+            // They define what events the bot will listen to
+            const subscriptionTypes = [
+                {
                     type: 'channel.chat.message',
                     version: '1',
                     condition: {
                         broadcaster_user_id: this.channelId,
                         user_id: this.channelId
-                    },
-                    transport: {
-                        method: 'websocket',
-                        session_id: this.sessionId
                     }
-                })
-            });
+                },
+                {
+                    type: 'channel.follow',
+                    version: '2',
+                    condition: {
+                        broadcaster_user_id: this.channelId,
+                        moderator_user_id: this.channelId
+                    }
+                }
+            ];
     
-            const data = await response.json();
-            
-            if (!response.ok) {
-                console.error('Subscription failed:', {
-                    status: response.status,
-                    data: data
+            for (const subscription of subscriptionTypes) {
+                const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Client-Id': this.clientId,
+                        'Authorization': `Bearer ${this.userAccessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...subscription,
+                        transport: {
+                            method: 'websocket',
+                            session_id: this.sessionId
+                        }
+                    })
                 });
-                throw new Error(`Subscription failed: ${data.message}`);
-            }
     
-            console.log('Successfully subscribed to chat messages');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    console.error(`Subscription failed for ${subscription.type}:`, {
+                        status: response.status,
+                        data: data
+                    });
+                    continue;
+                }
+    
+                console.log(`Successfully subscribed to ${subscription.type}`);
+            }
         } catch (error) {
             console.error('Error subscribing to events:', error);
             this.ws?.close();
@@ -190,15 +199,22 @@ class TwitchEventSubService {
     }
 
     private async handleNotification(message: EventSubMessage): Promise<void> {
+        // Chat message event
         if (message.metadata.subscription_type === 'channel.chat.message' && message.payload.event) {
             const event = message.payload.event;
-            console.log(`MSG #${event.broadcaster_user_login} <${event.chatter_user_login}> ${event.message.text}`);
+            console.log(`MSG #${event.broadcaster_user_login} <${event.user_login}> ${event.message.text}`);
 
-            if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
+            if (event.user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
+                // TODO: Make dynamic way to get different bot text responses from front-end GUI options
                 if (event.message.text.trim().toLowerCase().startsWith('why')) {
                     await this.sendChatMessage('Why not?');
                 }
             }
+        }
+        // Follow event
+        if (message.metadata.subscription_type === 'channel.follow' && message.payload.event) {
+            const event = message.payload.event;
+            console.log(`FOLLOW #${event.broadcaster_user_login} <${event.user_login}>`);
         }
     }
 

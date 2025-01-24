@@ -42,6 +42,7 @@ class TwitchUserClient {
         'chat:read',
         'moderation:read',
         'moderator:read:chatters',
+        'moderator:read:followers',
         'moderator:manage:chat_settings',
         'moderator:manage:announcements',
         'moderator:manage:shoutouts',
