@@ -98,6 +98,12 @@ class TwitchEventSubService {
     }
 
     private handleMessage(data: WebSocket.RawData, userId: string): void {
+        // Verify connection is still active
+        if (!this.isConnected(userId)) {
+            // console.log(`Ignoring message for disconnected user ${userId}`);
+            return;
+        }
+    
         try {
             const message: EventSubMessage = JSON.parse(data.toString());
             this.processMessage(message, userId);
@@ -111,7 +117,7 @@ class TwitchEventSubService {
             case 'session_welcome':
                 this.sessionId = message.payload.session.id;
                 this.userSessions.set(userId, this.sessionId);
-                console.log(`Session established for user ${userId}:`, this.sessionId);
+                // console.log(`Session established for user ${userId}:`, this.sessionId);
                 this.subscribeToEvents();
                 break;
             case 'notification':
@@ -133,27 +139,36 @@ class TwitchEventSubService {
     private async handleClose(req: Request, userId: string): Promise<void> {
         console.log(`WebSocket connection closed for user ${userId}`);
         
+        // Clean up resources
+        this.connections.delete(userId);
+        this.userSessions.delete(userId);
+        
         // Check if this was an intentional closure
         if (this.intentionalClosures.has(userId)) {
             this.intentionalClosures.delete(userId);
-            return; // Don't reconnect for intentional closures
+            console.log(`Intentional closure completed for user ${userId}`);
+            return;
         }
-
-        // Only attempt reconnection for unexpected closures
+    
+        // Only attempt reconnect if it wasn't intentional
         await this.handleReconnect(req, userId);
     }
 
     private async handleReconnect(req: Request, userId: string): Promise<void> {
         if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-            console.error(`Max reconnection attempts reached for user ${userId}`);
+            console.log(`Max reconnection attempts reached for user ${userId}`);
             return;
         }
-
+    
+        console.log(`Attempting to reconnect for user ${userId}. Attempt ${this.reconnectAttempts + 1}`);
         this.reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
         
-        console.log(`Attempting to reconnect for user ${userId} in ${delay}ms`);
-        setTimeout(() => this.connect(req), delay);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, this.reconnectAttempts)));
+            await this.connect(req);
+        } catch (error) {
+            console.error(`Reconnection attempt failed for user ${userId}:`, error);
+        }
     }
 
     private async subscribeToEvents(): Promise<void> {
@@ -290,8 +305,8 @@ class TwitchEventSubService {
     }
 
     public isConnected(userId: string): boolean {
-        const ws = this.connections.get(userId);
-        return ws?.readyState === WebSocket.OPEN;
+        const connection = this.connections.get(userId);
+        return connection?.readyState === WebSocket.OPEN;
     }
 
     public getSessionId(userId: string): string | null {
