@@ -13,16 +13,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(router);
 
-app.get('/', (_req, res) => {
-  res.send(`
-    <html>
-      <body>
-        <button onclick="window.location.href='/twitch/login'">Log in with Twitch</button>
-      </body>
-    </html>
-  `);
-});
-
 app.get('/dashboard', (_req, res) => {
   res.send('Welcome to your dashboard!');
 });
