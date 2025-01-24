@@ -23,6 +23,9 @@ twitchRouter.get('/login', userClientAuthController.handleLogin);
 twitchRouter.get('/callback', userClientAuthController.handleCallback);
 
 // ${BASE_URL}/twitch/connect
-twitchRouter.get('/connect', userAuth, (req, res) => eventSubController.handleConnection(req, res));
+twitchRouter.get('/connect', userAuth, eventSubController.handleConnection);
+
+// ${BASE_URL}/twitch/disconnect
+twitchRouter.get('/disconnect', userAuth, eventSubController.handleDisconnection);
 
 export default twitchRouter;

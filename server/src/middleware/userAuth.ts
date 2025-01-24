@@ -4,16 +4,17 @@ import TwitchUserClient from '../services/twitch/auth/twitchUser.js';
 const twitchUserClient = new TwitchUserClient();
 
 const userAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const BASE_URL = process.env.NODE_ENV === 'production' ? process.env.BASE_URL : 'https://localhost:5173';
     try {        
-        if (!req.cookies.user_access_token) {
-            console.log('No token found, redirecting to login');
-            res.redirect('/twitch/login');
+        const token = req.cookies.user_access_token;
+        if (!token) {
+            console.log('No token found in cookies, redirecting to login');
+            res.redirect(`${BASE_URL}/twitch/login`);
             return;
         }
 
-        const token = await twitchUserClient.getAccessToken(req);
-
-        if (!token) {
+        const userToken = await twitchUserClient.getAccessToken(req);
+        if (!userToken) {
             res.status(401).json({
                 error: 'unauthorized',
                 message: 'No valid user token available'
@@ -23,7 +24,7 @@ const userAuth = async (req: Request, res: Response, next: NextFunction): Promis
 
         req.twitchUserHeaders = {
             'Client-Id': process.env.TWITCH_APP_CLIENT_ID!,
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${userToken}`
         };
         next();
     } catch (error) {

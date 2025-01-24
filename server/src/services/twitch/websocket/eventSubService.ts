@@ -39,6 +39,7 @@ class TwitchEventSubService {
     private twitchClient: TwitchClient;
     private userAccessToken: string;
     private userSessions: Map<string, string>;
+    private intentionalClosures: Set<string>;
 
     constructor(userService: UserService) {
         this.connections = new Map();
@@ -51,6 +52,7 @@ class TwitchEventSubService {
         this.twitchClient = new TwitchClient();
         this.userAccessToken = '';
         this.userSessions = new Map();
+        this.intentionalClosures = new Set();
     }
 
     public async connect(req: Request): Promise<void> {
@@ -130,6 +132,14 @@ class TwitchEventSubService {
 
     private async handleClose(req: Request, userId: string): Promise<void> {
         console.log(`WebSocket connection closed for user ${userId}`);
+        
+        // Check if this was an intentional closure
+        if (this.intentionalClosures.has(userId)) {
+            this.intentionalClosures.delete(userId);
+            return; // Don't reconnect for intentional closures
+        }
+
+        // Only attempt reconnection for unexpected closures
         await this.handleReconnect(req, userId);
     }
 
@@ -215,12 +225,11 @@ class TwitchEventSubService {
             console.log(`MSG #${event.broadcaster_user_login} <${event.chatter_user_login}> ${event.message.text}`);
 
             if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
-                // TODO: Make dynamic way to get different bot text responses from front-end GUI options
+                // TODO: Make dynamic way to get different bot text responses from front-end GUI options & local storage
                 if (event.message.text.trim().toLowerCase().startsWith('why')) {
                     await this.sendChatMessage('Why not?', event.broadcaster_user_id);
                 }
-                const firstWord = event.message.text.trim().split(' ')[0].toLowerCase();
-                if (firstWord === 'hello') {
+                if (event.message.text.trim().split(' ')[0].toLowerCase() === 'hello') {
                     await this.sendChatMessage(`imGlitch Bonjour, @${event.chatter_user_name}!`, event.broadcaster_user_id);
                 }
             }
@@ -264,10 +273,18 @@ class TwitchEventSubService {
         }
     }
 
+    public async clearUserSession(userId: string): Promise<void> {
+        this.intentionalClosures.delete(userId);
+        this.userSessions.delete(userId);
+        this.connections.delete(userId);
+    }
+
     public closeConnection(userId: string): void {
         const ws = this.connections.get(userId);
         if (ws) {
-            ws.close();
+            // Mark this as an intentional closure
+            this.intentionalClosures.add(userId);
+            ws.close(1000, 'User initiated disconnect');
             this.connections.delete(userId);
         }
     }
