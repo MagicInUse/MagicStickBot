@@ -15,6 +15,7 @@ interface EventSubMessage {
         event?: {
             broadcaster_user_login: string;
             user_login: string;
+            chatter_user_login: string;
             message: {
                 text: string;
             };
@@ -40,8 +41,7 @@ class TwitchEventSubService {
         this.reconnectAttempts = 0;
         this.botUserId = process.env.TWITCH_CHATBOT_USER_ID!;
         this.clientId = process.env.TWITCH_APP_CLIENT_ID!;
-        // TODO: Set the channel ID to the logged in user's ID
-        this.channelId = process.env.TWITCH_CHATBOT_CHANNEL_ID!;
+        this.channelId = '';
         this.userService = userService;
         this.twitchClient = new TwitchClient();
         this.userAccessToken = '';
@@ -202,13 +202,19 @@ class TwitchEventSubService {
         // Chat message event
         if (message.metadata.subscription_type === 'channel.chat.message' && message.payload.event) {
             const event = message.payload.event;
-            console.log(`MSG #${event.broadcaster_user_login} <${event.user_login}> ${event.message.text}`);
+            // TODO: Look into the channel_user_login and the user_login scopes. They are not working as expected.
+            // It seems that chat requires channel_user_login and follow requires user_login
+            // We will have to edit types to accomodate this
+            console.log(`MSG #${event.broadcaster_user_login} <${event.chatter_user_login}> ${event.message.text}`);
 
-            if (event.user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
+            if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
                 // TODO: Make dynamic way to get different bot text responses from front-end GUI options
                 if (event.message.text.trim().toLowerCase().startsWith('why')) {
                     await this.sendChatMessage('Why not?');
                 }
+            }
+            if (event.message.text.trim().toLowerCase().startsWith('hello')) {
+                await this.sendChatMessage('Bonjour!');
             }
         }
         // Follow event
