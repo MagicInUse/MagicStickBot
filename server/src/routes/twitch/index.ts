@@ -11,10 +11,10 @@ const userClientAuthController = new UserClientAuthController();
 const eventSubController = new EventSubController();
 
 // ${BASE_URL}/twitch/app
-twitchRouter.use('/app', twitchAppAPIRouter);
+twitchRouter.use('/app', userAuth, twitchAppAPIRouter);
 
 // ${BASE_URL}/twitch/user
-twitchRouter.use('/user', twitchUserAPIRouter);
+twitchRouter.use('/user', userAuth, twitchUserAPIRouter);
 
 // ${BASE_URL}/twitch/login
 twitchRouter.get('/login', userClientAuthController.handleLogin);
