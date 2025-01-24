@@ -14,6 +14,7 @@ interface EventSubMessage {
         };
         event?: {
             broadcaster_user_login: string;
+            broadcaster_user_id: string;
             user_login: string;
             chatter_user_login: string;
             chatter_user_name: string;
@@ -25,6 +26,7 @@ interface EventSubMessage {
 }
 
 class TwitchEventSubService {
+    private connections: Map<string, WebSocket>;
     private ws?: WebSocket;
     private readonly EVENTSUB_URL = 'wss://eventsub.wss.twitch.tv/ws';
     private sessionId: string | null;
@@ -32,12 +34,14 @@ class TwitchEventSubService {
     private readonly MAX_RECONNECT_ATTEMPTS = 5;
     private readonly botUserId: string;
     private readonly clientId: string;
-    private  channelId: string;
+    private channelId: string;
     private userService: UserService;
     private twitchClient: TwitchClient;
     private userAccessToken: string;
+    private userSessions: Map<string, string>;
 
     constructor(userService: UserService) {
+        this.connections = new Map();
         this.sessionId = null;
         this.reconnectAttempts = 0;
         this.botUserId = process.env.TWITCH_CHATBOT_USER_ID!;
@@ -46,61 +50,66 @@ class TwitchEventSubService {
         this.userService = userService;
         this.twitchClient = new TwitchClient();
         this.userAccessToken = '';
+        this.userSessions = new Map();
     }
 
     public async connect(req: Request): Promise<void> {
+        let userId: string | undefined;
         try {
             if (!req.twitchUserHeaders) {
                 throw new Error('No auth headers present');
             }
-    
-            // Extract token from Authorization header
-            this.userAccessToken = req.twitchUserHeaders.Authorization.split(' ')[1];
-    
+
             const userResponse = await this.userService.getLoggedInUser(req);
-    
-            if (!userResponse?.data?.[0]?.id) {
-                throw new Error('Invalid user response: missing user ID');
+            userId = userResponse.data[0].id;
+
+            // Check if connection already exists
+            if (this.connections.has(userId!)) {
+                return;
             }
-    
-            this.channelId = userResponse.data[0].id;
+
+            this.channelId = userId!;
+            this.userAccessToken = req.twitchUserHeaders.Authorization.split(' ')[1];
             
-            this.ws = new WebSocket(this.EVENTSUB_URL);
-            this.setupWebSocketHandlers(req);
+            const ws = new WebSocket(this.EVENTSUB_URL);
+            this.setupWebSocketHandlers(ws, req, userId!);
+            this.connections.set(userId!, ws);
+
         } catch (error) {
             console.error('Failed to connect:', error);
-            await this.handleReconnect(req);
+            if (userId) {
+                await this.handleReconnect(req, userId);
+            }
         }
     }
 
-    private setupWebSocketHandlers(req: Request): void {
-        if (!this.ws) return;
-
-        this.ws.on('open', this.handleOpen.bind(this));
-        this.ws.on('message', this.handleMessage.bind(this));
-        this.ws.on('error', this.handleError.bind(this));
-        this.ws.on('close', () => this.handleClose(req));
+    private setupWebSocketHandlers(ws: WebSocket, req: Request, userId: string): void {
+        ws.on('open', () => this.handleOpen(userId));
+        ws.on('message', (data) => this.handleMessage(data, userId));
+        ws.on('error', (error) => this.handleError(error, userId));
+        ws.on('close', () => this.handleClose(req, userId));
     }
 
-    private handleOpen(): void {
-        console.log('Connected to Twitch EventSub WebSocket');
+    private handleOpen(userId: string): void {
+        console.log(`Connected to Twitch EventSub WebSocket for user ${userId}`);
         this.reconnectAttempts = 0;
     }
 
-    private handleMessage(data: WebSocket.RawData): void {
+    private handleMessage(data: WebSocket.RawData, userId: string): void {
         try {
             const message: EventSubMessage = JSON.parse(data.toString());
-            this.processMessage(message);
+            this.processMessage(message, userId);
         } catch (error) {
-            console.error('Error processing message:', error);
+            console.error(`Error processing message for user ${userId}:`, error);
         }
     }
 
-    private processMessage(message: EventSubMessage): void {
+    private processMessage(message: EventSubMessage, userId: string): void {
         switch (message.metadata.message_type) {
             case 'session_welcome':
                 this.sessionId = message.payload.session.id;
-                console.log('Session established:', this.sessionId);
+                this.userSessions.set(userId, this.sessionId);
+                console.log(`Session established for user ${userId}:`, this.sessionId);
                 this.subscribeToEvents();
                 break;
             case 'notification':
@@ -110,30 +119,30 @@ class TwitchEventSubService {
                 // Optional: Log keepalive
                 break;
             case 'revocation':
-                console.log('Subscription revoked:', message.payload);
+                console.log(`Subscription revoked for user ${userId}:`, message.payload);
                 break;
         }
     }
 
-    private handleError(error: Error): void {
-        console.error('WebSocket error:', error);
+    private handleError(error: Error, userId: string): void {
+        console.error(`WebSocket error for user ${userId}:`, error);
     }
 
-    private async handleClose(req: Request): Promise<void> {
-        console.log('WebSocket connection closed');
-        await this.handleReconnect(req);
+    private async handleClose(req: Request, userId: string): Promise<void> {
+        console.log(`WebSocket connection closed for user ${userId}`);
+        await this.handleReconnect(req, userId);
     }
 
-    private async handleReconnect(req: Request): Promise<void> {
+    private async handleReconnect(req: Request, userId: string): Promise<void> {
         if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-            console.error('Max reconnection attempts reached');
+            console.error(`Max reconnection attempts reached for user ${userId}`);
             return;
         }
 
         this.reconnectAttempts++;
         const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
         
-        console.log(`Attempting to reconnect in ${delay}ms`);
+        console.log(`Attempting to reconnect for user ${userId} in ${delay}ms`);
         setTimeout(() => this.connect(req), delay);
     }
 
@@ -208,11 +217,11 @@ class TwitchEventSubService {
             if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
                 // TODO: Make dynamic way to get different bot text responses from front-end GUI options
                 if (event.message.text.trim().toLowerCase().startsWith('why')) {
-                    await this.sendChatMessage('Why not?');
+                    await this.sendChatMessage('Why not?', event.broadcaster_user_login);
                 }
                 const firstWord = event.message.text.trim().split(' ')[0].toLowerCase();
                 if (firstWord === 'hello') {
-                    await this.sendChatMessage(`imGlitch Bonjour, @${event.chatter_user_name}!`);
+                    await this.sendChatMessage(`imGlitch Bonjour, @${event.chatter_user_name}!`, event.broadcaster_user_id);
                 }
             }
         }
@@ -223,9 +232,10 @@ class TwitchEventSubService {
         }
     }
 
-    private async sendChatMessage(message: string): Promise<void> {
+    private async sendChatMessage(message: string, broadcasterId: string): Promise<void> {
         try {
             const token = await this.twitchClient.getAccessToken();
+
             const response = await fetch('https://api.twitch.tv/helix/chat/messages', {
                 method: 'POST',
                 headers: {
@@ -234,30 +244,41 @@ class TwitchEventSubService {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    broadcaster_id: this.channelId,
+                    broadcaster_id: broadcasterId,
                     sender_id: this.botUserId,
                     message: message
                 })
             });
 
-            if (response.status !== 200) {
+            if (!response.ok) {
                 const data = await response.json();
-                console.error('Failed to send chat message:', data);
+                console.error(`Failed to send chat message (${response.status}):`, data);
                 return;
             }
 
-            console.log('Sent chat message:', message);
+            console.log(`Successfully sent chat message in channel ${broadcasterId}: ${message}`);
+            return;
+
         } catch (error) {
             console.error('Error sending chat message:', error);
         }
     }
 
-    public isConnected(): boolean {
-        return this.ws?.readyState === WebSocket.OPEN;
+    public closeConnection(userId: string): void {
+        const ws = this.connections.get(userId);
+        if (ws) {
+            ws.close();
+            this.connections.delete(userId);
+        }
     }
 
-    public getSessionId(): string | null {
-        return this.sessionId;
+    public isConnected(userId: string): boolean {
+        const ws = this.connections.get(userId);
+        return ws?.readyState === WebSocket.OPEN;
+    }
+
+    public getSessionId(userId: string): string | null {
+        return this.userSessions.get(userId) || null;
     }
 }
 

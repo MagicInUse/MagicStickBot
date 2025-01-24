@@ -12,13 +12,14 @@ class EventSubController {
 
     public handleConnection = async (req: Request, res: Response): Promise<void> => {
         try {
-            if (!this.eventSubService.isConnected()) {
+            const userId = req.body.userId;
+            if (!this.eventSubService.isConnected(userId)) {
                 await this.eventSubService.connect(req);
             }
             
             res.json({
                 status: 'connected',
-                sessionId: this.eventSubService.getSessionId()
+                sessionId: this.eventSubService.getSessionId(userId)
             });
         } catch (error) {
             res.status(500).json({
