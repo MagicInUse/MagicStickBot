@@ -16,6 +16,7 @@ interface EventSubMessage {
             broadcaster_user_login: string;
             user_login: string;
             chatter_user_login: string;
+            chatter_user_name: string;
             message: {
                 text: string;
             };
@@ -202,9 +203,6 @@ class TwitchEventSubService {
         // Chat message event
         if (message.metadata.subscription_type === 'channel.chat.message' && message.payload.event) {
             const event = message.payload.event;
-            // TODO: Look into the channel_user_login and the user_login scopes. They are not working as expected.
-            // It seems that chat requires channel_user_login and follow requires user_login
-            // We will have to edit types to accomodate this
             console.log(`MSG #${event.broadcaster_user_login} <${event.chatter_user_login}> ${event.message.text}`);
 
             if (event.chatter_user_login !== process.env.TWITCH_BOT_USER_LOGIN) { // Make sure the bot doesn't respond to itself
@@ -212,9 +210,10 @@ class TwitchEventSubService {
                 if (event.message.text.trim().toLowerCase().startsWith('why')) {
                     await this.sendChatMessage('Why not?');
                 }
-            }
-            if (event.message.text.trim().toLowerCase().startsWith('hello')) {
-                await this.sendChatMessage('Bonjour!');
+                const firstWord = event.message.text.trim().split(' ')[0].toLowerCase();
+                if (firstWord === 'hello') {
+                    await this.sendChatMessage(`imGlitch Bonjour, @${event.chatter_user_name}!`);
+                }
             }
         }
         // Follow event
