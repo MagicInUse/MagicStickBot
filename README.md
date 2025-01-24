@@ -15,3 +15,4 @@ Magic Stick Bot is a full-stack application designed to interact with the Twitch
 - [Twitch OAuth](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/)
 - [Twitch API Reference](https://dev.twitch.tv/docs/api/reference/)
 - [Twitch API Scopes](https://dev.twitch.tv/docs/authentication/scopes/)
+- [Twitch EventSub Reference](https://dev.twitch.tv/docs/eventsub/eventsub-reference/)
