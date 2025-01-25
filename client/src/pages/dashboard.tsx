@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Endpoints from '../components/endpoints';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -25,7 +24,8 @@ function Dashboard() {
       <h4>by MagicApps</h4>
       <br />
       <h2>Dashboard</h2>
-      <Endpoints />
+
+      <Link to="/endpoints">Go to Endpoints</Link>
     </>
   )
 }

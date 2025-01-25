@@ -5,9 +5,34 @@
   text-align: center;
 }
 
+
 a:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.Endpoints {
+  display: flex;
+  color: #8f53f6;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  text-decoration: underline;
+  }
+
+.Endpoints:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: -2.8em;
+  left: -0.25em;
+  color: orange;
+  background-color: #1f1f1f;
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 0.25em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  z-index: 1;
 }
 
 .logo {

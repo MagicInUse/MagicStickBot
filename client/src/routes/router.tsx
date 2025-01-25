@@ -1,6 +1,7 @@
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import App from '../App';
 import Dashboard from '../pages/Dashboard';
+import Endpoints from '../pages/Endpoints';
 import NotFound from '../pages/NotFound';
 
 // Loader function to check auth and handle connection
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
   {
     path: '/dashboard', 
     element: <Dashboard />,
+  },
+  {
+    path: '/endpoints', 
+    element: <Endpoints />,
   },
   {
     path: '*',
