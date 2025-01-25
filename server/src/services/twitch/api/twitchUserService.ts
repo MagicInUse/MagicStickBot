@@ -130,7 +130,7 @@ class UserService {
     }
 
     // Requires moderator:read:followers scope
-    async getChannelFollwers(req: Request): Promise<any> {
+    async getChannelFollowers(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/channels/followers`, {
             params: { 
                 broadcaster_id: req.params.broadcaster_id!,
@@ -143,7 +143,7 @@ class UserService {
     }
 
     // Requires channel:manage:redemptions scope
-    async createCusomRewards(req: Request): Promise<any> {
+    async createCustomRewards(req: Request): Promise<any> {
         return axios.post(`${this.API_BASE}/channel_points/custom_rewards`, {
             title: req.body.title!,
             cost: req.body.cost!,

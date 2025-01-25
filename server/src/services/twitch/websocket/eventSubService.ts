@@ -254,6 +254,7 @@ class TwitchEventSubService {
             const event = message.payload.event;
             console.log(`FOLLOW #${event.broadcaster_user_login} <${event.user_login}>`);
         }
+        // TODO: Add more event types to listen to
     }
 
     private async sendChatMessage(message: string, broadcasterId: string): Promise<void> {
