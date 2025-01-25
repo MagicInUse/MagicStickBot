@@ -58,7 +58,7 @@ const Endpoints = () => {
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/bits/leaderboard`)} title={`${BASE_URL}/twitch/user/bits/leaderboard`}>Get Bits Leaderboard</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id`}>Get Channel Information</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/editors`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/editors`}>Get Channel Editors</a>
-                    <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/${user_id}/followed`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/:user_id/followed`}>Get Channel Follow Age</a> {/* TODO: Fix this */}
+                    <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/${user_id}/followed`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/:user_id/followed`}><span style={{ textDecoration: 'line-through' }}>Get Channel Follow Age</span></a><span style={{ color: 'red' }}>{`<BROKEN>`}</span>{/* TODO: Fix this */}
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/followers`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/followers`}>Get Channel Followers</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channel-points/${broadcaster_id}/rewards`)} title={`${BASE_URL}/twitch/user/channel-points/:broadcaster_id/rewards`}>Get Custom Rewards</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/charity/${broadcaster_id}/campaigns`)} title={`${BASE_URL}/twitch/user/charity/:broadcaster_id/campaigns`}>Get Charity Campaign</a>
@@ -77,13 +77,13 @@ const Endpoints = () => {
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/subscriptions/broadcaster/${broadcaster_id}`)} title={`${BASE_URL}/twitch/user/subscriptions/broadcaster/:broadcaster_id`}>Get Broadcaster Subscriptions</a>
 
                 </div>
-                <div style={{ flex: 1, paddingLeft: '20px', minHeight: '200px', minWidth: '1000px' }}>
+                <div style={{ flex: 1, paddingLeft: '20px', minHeight: '200px', minWidth: '931px' }}>
                     {apiResponse ? (
                         <pre style={{ background: '#191919', padding: '10px', borderRadius: '15px', overflow: 'auto', textAlign: 'left'}}>
                             {JSON.stringify(apiResponse, null, 2)}
                         </pre>
                     ) : (
-                        <pre style={{ background: '#191919', padding: '10px', borderRadius: '15px', overflow: 'auto', textAlign: 'left'}}>
+                        <pre style={{ background: '#191919', padding: '10px', borderRadius: '15px', overflow: 'auto'}}>
                             Select an endpoint to see the response
                         </pre>
                         
