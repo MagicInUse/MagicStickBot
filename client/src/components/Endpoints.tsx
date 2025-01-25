@@ -29,13 +29,16 @@ const Endpoints = () => {
                     <h2>USER Endpoints</h2>
                     <a onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/me`)}>Get Logged In User</a>
                 </div>
-                <div style={{ flex: 1, paddingLeft: '20px' }}>
+                <div style={{ flex: 1, paddingLeft: '20px', minHeight: '200px', minWidth: '1200px' }}>
                     {apiResponse ? (
-                        <p style={{ background: '#f4f4f4', padding: '10px', borderRadius: '15px' }}>
+                        <pre style={{ background: '#f4f4f4', padding: '10px', borderRadius: '15px', overflow: 'auto', textAlign: 'left'}}>
                             {JSON.stringify(apiResponse, null, 2)}
-                        </p>
+                        </pre>
                     ) : (
-                        'Select an endpoint to see the response'
+                        <pre style={{ background: '#f4f4f4', padding: '10px', borderRadius: '15px', overflow: 'auto', textAlign: 'left'}}>
+                            Select an endpoint to see the response
+                        </pre>
+                        
                     )}
                 </div>
             </div>
