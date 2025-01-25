@@ -120,8 +120,8 @@ class UserService {
     async getFollowedChannels(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/channels/followed`, {
             params: { 
-                user_id: req.query.user_id!,
-                broadcaster_id: req.query.broadcaster_id! || undefined,
+                user_id: req.params.user_id!,
+                broadcaster_id: req.query.broadcaster_id!,
                 after: req.query.after || undefined,
                 first: req.query.first || undefined
             },
@@ -265,7 +265,7 @@ class UserService {
         return axios.get(`${this.API_BASE}/chat/chatters`, {
             params: { 
                 broadcaster_id: req.params.broadcaster_id!,
-                moderator_id: req.query.moderator_id || undefined,
+                moderator_id: req.params.moderator_id || undefined,
                 first: req.query.first || undefined,
                 after: req.query.after || undefined
             },
@@ -563,7 +563,7 @@ class UserService {
     async getModeratedChannels(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/moderation/channels`, {
             params: {
-                user_id: req.query.user_id!,
+                user_id: req.params.user_id!,
                 after: req.query.after || undefined,
                 first: req.query.first || undefined
             },
@@ -589,7 +589,7 @@ class UserService {
 
     // Requires channel:read:vips scope
     async getVIPs(req: Request): Promise<any> {
-        return axios.get(`${this.API_BASE}/channel/vips`, {
+        return axios.get(`${this.API_BASE}/channels/vips`, {
             params: {
                 broadcaster_id: req.params.broadcaster_id!,
                 user_id: req.query.user_id || undefined,
@@ -749,7 +749,7 @@ class UserService {
     async getFollowedStreams(req: Request): Promise<any> {
         return axios.get(`${this.API_BASE}/streams/followed`, {
             params: {
-                user_id: req.query.user_id!,
+                user_id: req.params.user_id!,
                 after: req.query.after || undefined,
                 first: req.query.first || undefined
             },
@@ -788,7 +788,7 @@ class UserService {
         return axios.get(`${this.API_BASE}/subscriptions/user`, {
             params: {
                 broadcaster_id: req.params.broadcaster_id!,
-                user_id: req.query.user_id!
+                user_id: req.params.user_id!
             },
             headers: req.twitchUserHeaders!
         });

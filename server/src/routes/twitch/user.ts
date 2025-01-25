@@ -21,7 +21,7 @@ twitchUserAPIRouter.get('/bits/leaderboard', userAuth, userResponseController.ge
 twitchUserAPIRouter.get('/channels/:broadcaster_id', userAuth, userResponseController.getChannelInformation);
 twitchUserAPIRouter.patch('/channels/:broadcaster_id', userAuth, userResponseController.modifyChannelInformation);
 twitchUserAPIRouter.get('/channels/:broadcaster_id/editors', userAuth, userResponseController.getChannelEditors);
-twitchUserAPIRouter.get('/channels/followed', userAuth, userResponseController.getFollowedChannels); // TODO: Does not work ?
+twitchUserAPIRouter.get('/channels/:broadcaster_id/:user_id/followed', userAuth, userResponseController.getFollowedChannels);
 twitchUserAPIRouter.get('/channels/:broadcaster_id/followers', userAuth, userResponseController.getChannelFollowers);
 
 // Channel Points
@@ -36,7 +36,7 @@ twitchUserAPIRouter.get('/charity/:broadcaster_id/campaigns', userAuth, userResp
 twitchUserAPIRouter.get('/charity/:broadcaster_id/donations', userAuth, userResponseController.getCharityCampaignDonations);
 
 // Chat
-twitchUserAPIRouter.get('/chat/:broadcaster_id/chatters', userAuth, userResponseController.getChatters); // TODO: Missing param 'moderator_id'
+twitchUserAPIRouter.get('/chat/:broadcaster_id/:moderator_id/chatters', userAuth, userResponseController.getChatters);
 twitchUserAPIRouter.put('/chat/:broadcaster_id/settings', userAuth, userResponseController.updateChatSettings);
 twitchUserAPIRouter.post('/chat/:broadcaster_id/announcements', userAuth, userResponseController.sendChatAnnouncement);
 twitchUserAPIRouter.post('/chat/:broadcaster_id/shoutouts', userAuth, userResponseController.sendShoutout);
@@ -60,9 +60,9 @@ twitchUserAPIRouter.get('/hype-train/:broadcaster_id', userAuth, userResponseCon
 twitchUserAPIRouter.get('/moderation/:broadcaster_id/banned', userAuth, userResponseController.getBannedUsers);
 twitchUserAPIRouter.post('/moderation/bans', userAuth, userResponseController.banUser);
 twitchUserAPIRouter.delete('/moderation/bans', userAuth, userResponseController.unbanUser);
-twitchUserAPIRouter.get('/moderation/channels', userAuth, userResponseController.getModeratedChannels); // TODO: Missing param 'user_id'
+twitchUserAPIRouter.get('/moderation/:user_id/channels', userAuth, userResponseController.getModeratedChannels);
 twitchUserAPIRouter.get('/moderation/:broadcaster_id/moderators', userAuth, userResponseController.getModerators);
-twitchUserAPIRouter.get('/moderation/vips', userAuth, userResponseController.getVIPs); // TODO: 404 Error
+twitchUserAPIRouter.get('/moderation/:broadcaster_id/vips', userAuth, userResponseController.getVIPs);
 
 // Polls
 twitchUserAPIRouter.get('/polls/:broadcaster_id', userAuth, userResponseController.getPolls);
@@ -80,11 +80,11 @@ twitchUserAPIRouter.delete('/raids', userAuth, userResponseController.cancelRaid
 
 // Stream
 twitchUserAPIRouter.get('/schedule/:broadcaster_id', userAuth, userResponseController.getChannelStreamSchedule);
-twitchUserAPIRouter.get('/streams/followed', userAuth, userResponseController.getFollowedStreams); // TODO: Missing param 'user_id'
+twitchUserAPIRouter.get('/streams/:user_id/followed', userAuth, userResponseController.getFollowedStreams);
 twitchUserAPIRouter.post('/streams/markers', userAuth, userResponseController.createStreamMarker);
 
 // Subscriptions
 twitchUserAPIRouter.get('/subscriptions/broadcaster/:broadcaster_id', userAuth, userResponseController.getBroadcasterSubscriptions);
-twitchUserAPIRouter.get('/subscriptions/user/:broadcaster_id', userAuth, userResponseController.checkUserSubscription); // TODO: Missing param 'user_id'
+twitchUserAPIRouter.get('/subscriptions/user/:broadcaster_id/:user_id', userAuth, userResponseController.checkUserSubscription);
 
 export default twitchUserAPIRouter;
