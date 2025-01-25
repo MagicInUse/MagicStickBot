@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from '../App';
-import Dashboard from '../pages/dashboard';
+import Dashboard from '../pages/Dashboard';
 import NotFound from '../pages/NotFound';
 
 export const router = createBrowserRouter([

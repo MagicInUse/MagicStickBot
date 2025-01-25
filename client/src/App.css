@@ -5,6 +5,11 @@
   text-align: center;
 }
 
+a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
