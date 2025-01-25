@@ -1,9 +1,14 @@
 import './App.css'
 
 function App() {
-
-  const handleLogin = () => {
-    window.location.href = '/twitch/login';
+  
+  const handleLogin = async () => {
+    try {
+      // Redirect to server login endpoint
+      window.location.href = '/twitch/login';
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   }
 
   return (

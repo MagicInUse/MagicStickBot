@@ -13,7 +13,7 @@ class UserService {
                 throw new Error('No auth headers present');
             }
     
-            const response = await axios.get('https://api.twitch.tv/helix/users', {
+            const response = await axios.get(`${this.API_BASE}/users`, {
                 headers: req.twitchUserHeaders
             });
 

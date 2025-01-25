@@ -2,37 +2,53 @@ import 'dotenv/config';
 import express from 'express';
 import https from 'https';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import router from './routes/index.js';
 import cookieParser from 'cookie-parser';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Middleware setup
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(router);
 
-let privateKey: string;
-let certificate: string;
+// Path resolution
+const PUBLIC_PATH = process.env.NODE_ENV === 'production' 
+  ? path.join(__dirname, '../public_html')
+  : path.join(__dirname, '../../client/public_html');
 
-if (process.env.NODE_ENV != 'production') {
-  privateKey = fs.readFileSync('../private.key', 'utf8');
-  certificate = fs.readFileSync('../certificate.crt', 'utf8');
+const CERTS_PATH = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, '../../')
+  : path.join(__dirname, '../../');
 
-  const credentials = {
-    key: privateKey,
-    cert: certificate
-  };
+// Static files
+app.use(express.static(PUBLIC_PATH));
 
-  const httpsServer = https.createServer(credentials, app);
+// API routes
+app.use('/', router);
 
-  httpsServer.listen(port, () => {
-    console.log(`Server is running on https://localhost:${port}`);
-  });
-}
-else {
+// SPA fallback
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(PUBLIC_PATH, 'index.html'));
+});
+
+// Server startup
+if (process.env.NODE_ENV !== 'production') {
+  const privateKey = fs.readFileSync(path.join(CERTS_PATH, 'private.key'), 'utf8');
+  const certificate = fs.readFileSync(path.join(CERTS_PATH, 'certificate.crt'), 'utf8');
+
+  https.createServer({ key: privateKey, cert: certificate }, app)
+    .listen(port, () => {
+      console.log(`Development server running on https://localhost:${port}`);
+    });
+} else {
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Production server running on port ${port}`);
   });
 }
