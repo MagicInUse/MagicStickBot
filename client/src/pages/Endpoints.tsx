@@ -11,7 +11,6 @@ const Endpoints = () => {
         try {
             const response = await fetch(`${BASE_URL}/twitch/user/me`);
             const data = await response.json();
-            console.log(data);
             if (data) {
                 setBroadcasterId(data[0].id);
                 setBroadcasterLogin(data[0].login);
@@ -59,7 +58,7 @@ const Endpoints = () => {
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/bits/leaderboard`)} title={`${BASE_URL}/twitch/user/bits/leaderboard`}>Get Bits Leaderboard</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id`}>Get Channel Information</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/editors`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/editors`}>Get Channel Editors</a>
-                    <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/${user_id}/followed`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/:user_id/followed`}>Get Channel Follow Age</a> {/* TODO: This does not work */}
+                    <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/${user_id}/followed`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/:user_id/followed`}>Get Channel Follow Age</a> {/* TODO: Fix this */}
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channels/${broadcaster_id}/followers`)} title={`${BASE_URL}/twitch/user/channels/:broadcaster_id/followers`}>Get Channel Followers</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/channel-points/${broadcaster_id}/rewards`)} title={`${BASE_URL}/twitch/user/channel-points/:broadcaster_id/rewards`}>Get Custom Rewards</a>
                     <a className='Endpoints' onClick={() => handleEndpointClick(`${BASE_URL}/twitch/user/charity/${broadcaster_id}/campaigns`)} title={`${BASE_URL}/twitch/user/charity/:broadcaster_id/campaigns`}>Get Charity Campaign</a>

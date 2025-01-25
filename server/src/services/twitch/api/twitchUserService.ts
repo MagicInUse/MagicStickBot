@@ -121,7 +121,7 @@ class UserService {
         return axios.get(`${this.API_BASE}/channels/followed`, {
             params: { 
                 user_id: req.params.user_id!,
-                broadcaster_id: req.params.broadcaster_id!,
+                broadcaster_id: req.params.broadcaster_id || undefined,
                 after: req.query.after || undefined,
                 first: req.query.first || undefined
             },
