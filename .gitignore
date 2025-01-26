@@ -132,3 +132,5 @@ dist
 certificate.crt
 certificate.csr
 private.key
+
+public_html
